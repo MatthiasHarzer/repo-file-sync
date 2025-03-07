@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"private-ide-config-sync/commands"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +34,8 @@ var Command = &cobra.Command{
 				panic(err)
 			}
 
-			fmt.Printf("Extracted configs from %s\n", repo.LocalRepoDirectory)
+			print(color.BlueString("+ "))
+			color.White("extracted " + repo.LocalRepoDirectory)
 		}
 
 		err = db.Push()
@@ -42,7 +44,8 @@ var Command = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Println("Pushed configs to database")
+		println()
+		color.RGB(200, 200, 200).Print("Pushed changes to database")
 
 		return nil
 	},

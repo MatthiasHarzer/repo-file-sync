@@ -5,6 +5,8 @@ import (
 	"os"
 	"private-ide-config-sync/persistance"
 	"private-ide-config-sync/repository"
+
+	"github.com/fatih/color"
 )
 
 func Init(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.RepoConfigManager, error) {
@@ -20,8 +22,8 @@ func Init(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.RepoC
 		dbDir = persistance.DefaultDatabaseDir
 	}
 
-	fmt.Printf("Using database dir %s\n", dbDir)
-	fmt.Printf("Discovering repositories in %s\n", baseDir)
+	color.RGB(200, 200, 200).Print("Using database dir ")
+	color.Green(dbDir)
 
 	db, err := persistance.NewDatabase(dbDir)
 	if err != nil {
@@ -37,6 +39,10 @@ func Init(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.RepoC
 	if err != nil {
 		return nil, nil, err
 	}
+
+	color.RGB(200, 200, 200).Print(fmt.Sprintf("Discovered %d repositories in ", len(repos)))
+	color.Green(baseDir)
+
 	var repoConfigs []*repository.RepoConfigManager
 	for _, repo := range repos {
 		r, err := repository.NewRepoConfigManager(db, repo)
@@ -45,6 +51,8 @@ func Init(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.RepoC
 		}
 		repoConfigs = append(repoConfigs, r)
 	}
+
+	println()
 
 	return db, repoConfigs, nil
 }

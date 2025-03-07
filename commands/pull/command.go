@@ -1,9 +1,9 @@
 package pull
 
 import (
-	"fmt"
 	"private-ide-config-sync/commands"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +33,8 @@ var Command = &cobra.Command{
 				panic(err)
 			}
 
-			fmt.Printf("Pulled configs to %s\n", repo.LocalRepoDirectory)
+			print(color.GreenString("+ "))
+			color.White("pulled " + repo.LocalRepoDirectory)
 		}
 
 		return nil
