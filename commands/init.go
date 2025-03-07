@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"private-ide-config-sync/persistance"
 	"private-ide-config-sync/repository"
 
@@ -21,6 +22,9 @@ func Init(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.RepoC
 	if dbDir == "" {
 		dbDir = persistance.DefaultDatabaseDir
 	}
+
+	baseDir = filepath.ToSlash(baseDir)
+	dbDir = filepath.ToSlash(dbDir)
 
 	color.RGB(200, 200, 200).Print("Using database dir ")
 	color.Green(dbDir)
