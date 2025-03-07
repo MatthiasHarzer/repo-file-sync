@@ -33,7 +33,7 @@ var Command = &cobra.Command{
 				panic(err)
 			}
 
-			print(color.GreenString("+"), color.WhiteString(" pulled "), color.GreenString(repo.LocalRepoDirectory))
+			println(color.GreenString("+"), color.WhiteString(" pulled "), color.GreenString(repo.LocalRepoDirectory))
 		}
 
 		return nil

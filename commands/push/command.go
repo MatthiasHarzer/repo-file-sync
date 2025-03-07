@@ -34,7 +34,7 @@ var Command = &cobra.Command{
 				panic(err)
 			}
 
-			print(color.BlueString("+"), color.WhiteString(" extracted "), color.BlueString(repo.LocalRepoDirectory))
+			println(color.BlueString("+"), color.WhiteString(" extracted "), color.BlueString(repo.LocalRepoDirectory))
 		}
 
 		err = db.Push()
