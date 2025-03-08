@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func Setup(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.ConfigManager, error) {
+func Setup(baseDir, dbDir string) (*persistance.DatabaseRepo, <-chan string, error) {
 	var err error
 	if baseDir == "" {
 		baseDir, err = os.Getwd()
@@ -39,28 +39,26 @@ func Setup(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.Conf
 		return nil, nil, err
 	}
 
-	repos, err := repository.FindRepositories(baseDir, dbDir)
-	if err != nil {
-		return nil, nil, err
-	}
+	reposCh := repository.FindRepositories(baseDir, dbDir)
+	return db, reposCh, nil
 
-	if len(repos) == 1 {
-		color.RGB(200, 200, 200).Print("Discovered 1 repository in ")
-	} else {
-		color.RGB(200, 200, 200).Print(fmt.Sprintf("Discovered %d repositories in ", len(repos)))
-	}
-	color.Green(baseDir)
-
-	var repoConfigs []*repository.ConfigManager
-	for _, repo := range repos {
-		r, err := repository.NewRepoConfigManager(db, repo)
-		if err != nil {
-			return nil, nil, err
-		}
-		repoConfigs = append(repoConfigs, r)
-	}
-
-	println()
-
-	return db, repoConfigs, nil
+	//if len(repos) == 1 {
+	//	color.RGB(200, 200, 200).Print("Discovered 1 repository in ")
+	//} else {
+	//	color.RGB(200, 200, 200).Print(fmt.Sprintf("Discovered %d repositories in ", len(repos)))
+	//}
+	//color.Green(baseDir)
+	//
+	//var repoConfigs []*repository.ConfigManager
+	//for _, repo := range repos {
+	//	r, err := repository.NewRepoConfigManager(db, repo)
+	//	if err != nil {
+	//		return nil, nil, err
+	//	}
+	//	repoConfigs = append(repoConfigs, r)
+	//}
+	//
+	//println()
+	//
+	//return db, repoConfigs, nil
 }

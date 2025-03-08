@@ -3,6 +3,7 @@ package push
 import (
 	"fmt"
 	"private-ide-config-sync/commands"
+	"private-ide-config-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -28,14 +29,27 @@ var Command = &cobra.Command{
 			panic(err)
 		}
 
-		for _, repo := range repos {
-			err = repo.Save()
+		for repo := range repos {
+			println(color.GreenString("+"), "Discovered", color.GreenString(repo))
+
+			origins, err := repository.GetOrigins(repo)
 			if err != nil {
 				panic(err)
 			}
 
-			println(color.BlueString("+"), color.WhiteString(" extracted "), color.BlueString(repo.LocalRepoDirectory))
+			ideFolders := repository.GetIDEFolderPaths(repo)
+			for ideConfig := range ideFolders {
+				err := db.Write(origins, repo, ideConfig)
+				if err != nil {
+					color.Red("Failed to write %s to database: %s", ideConfig, err)
+					continue
+				}
+
+				println(color.BlueString("  +"), "IDE config saved:", color.BlueString(ideConfig))
+			}
 		}
+
+		println()
 
 		err = db.Push()
 		if err != nil {
@@ -43,7 +57,6 @@ var Command = &cobra.Command{
 			panic(err)
 		}
 
-		println()
 		color.RGB(200, 200, 200).Print("Pushed changes to database")
 
 		return nil

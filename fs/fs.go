@@ -1,4 +1,4 @@
-package persistance
+package fs
 
 import (
 	"errors"
@@ -35,33 +35,38 @@ func ListDirs(path string) ([]string, error) {
 	return dirs, nil
 }
 
-func FindFolders(root string, folderNames []string) ([]string, error) {
+func FindFolders(root string, folderNames []string) <-chan string {
 	var folderLookup = make(map[string]bool)
 	for _, folderName := range folderNames {
 		folderLookup[folderName] = true
 	}
 
-	var paths []string
-	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.IsDir() {
-			return nil
-		}
+	folders := make(chan string)
 
-		name := filepath.Base(path)
+	go func() {
+		defer close(folders)
 
-		if folderLookup[name] {
-			rel, err := filepath.Rel(root, path)
+		_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
-			paths = append(paths, filepath.ToSlash(rel))
-		}
-		return nil
-	})
-	return paths, err
+			if !d.IsDir() {
+				return nil
+			}
+
+			name := filepath.Base(path)
+
+			if folderLookup[name] {
+				rel, err := filepath.Rel(root, path)
+				if err != nil {
+					return err
+				}
+				folders <- filepath.ToSlash(rel)
+			}
+			return nil
+		})
+	}()
+	return folders
 }
 
 func HomeDir() string {
@@ -92,4 +97,12 @@ func IsDirectoryEmpty(path string) (bool, error) {
 	}
 
 	return len(entries) == 0, nil
+}
+
+func Collect[T any](c <-chan T) []T {
+	var result []T
+	for v := range c {
+		result = append(result, v)
+	}
+	return result
 }

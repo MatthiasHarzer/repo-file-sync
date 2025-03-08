@@ -3,35 +3,43 @@ package repository
 import (
 	"fmt"
 	"path/filepath"
-	"private-ide-config-sync/persistance"
+	"private-ide-config-sync/fs"
 	"strings"
 )
 
-func FindRepositories(base string, ignore string) ([]string, error) {
-	repositories, err := persistance.FindFolders(base, []string{".git"})
-	if err != nil {
-		return nil, err
-	}
+func FindRepositories(base string, ignore string) <-chan string {
+	repositories := fs.FindFolders(base, []string{".git"})
 
-	var repositoryPaths []string
-	for _, repository := range repositories {
-		correctSlash := filepath.ToSlash(repository)
-		noDotGit := strings.TrimSuffix(correctSlash, ".git")
+	repos := make(chan string)
 
-		f, err := filepath.Abs(noDotGit)
-		if err != nil {
-			return nil, err
+	go func() {
+		defer close(repos)
+
+		known := make(map[string]bool)
+
+		for repository := range repositories {
+			correctSlash := filepath.ToSlash(repository)
+			noDotGit := strings.TrimSuffix(correctSlash, ".git")
+
+			f, _ := filepath.Abs(noDotGit)
+			i, _ := filepath.Abs(ignore)
+
+			if f == i {
+				continue
+			}
+
+			repoPath := strings.TrimSuffix(filepath.ToSlash(fmt.Sprintf("%s/%s", base, noDotGit)), "/")
+			for folder := range known {
+				if strings.HasPrefix(repoPath, folder) {
+					continue
+				}
+			}
+
+			known[repoPath] = true
+
+			repos <- repoPath
 		}
-		i, err := filepath.Abs(ignore)
-		if err != nil {
-			return nil, err
-		}
+	}()
 
-		if f == i {
-			continue
-		}
-		repositoryPaths = append(repositoryPaths, fmt.Sprintf("%s/%s", base, noDotGit))
-	}
-
-	return repositoryPaths, nil
+	return repos
 }

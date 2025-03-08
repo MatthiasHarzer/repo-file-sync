@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"os/exec"
 	"path/filepath"
+	"private-ide-config-sync/fs"
+	"private-ide-config-sync/repository"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
@@ -14,16 +16,11 @@ import (
 var DefaultDatabaseDir string
 
 func init() {
-	DefaultDatabaseDir = filepath.ToSlash(fmt.Sprintf("%s/.ide-config-sync", HomeDir()))
+	DefaultDatabaseDir = filepath.ToSlash(fmt.Sprintf("%s/.ide-config-sync", fs.HomeDir()))
 }
 
 func originURLToDir(originURL url.URL) string {
 	return fmt.Sprintf("%s%s", originURL.Host, originURL.Path)
-}
-
-type IDEConfig struct {
-	FsPath       string
-	RelativePath string
 }
 
 type DatabaseRepo struct {
@@ -60,11 +57,11 @@ func NewDatabaseFromURL(url, directory string) (*DatabaseRepo, error) {
 	}, nil
 }
 
-func (d *DatabaseRepo) Write(origin url.URL, localRepoDir, localFolderPath string) error {
+func (d *DatabaseRepo) writeOrigin(origin url.URL, localRepoDir, localFolderPath string) error {
 	originDir := originURLToDir(origin)
 	originFolderPath := fmt.Sprintf("%s/%s", originDir, localFolderPath)
 	dbFolderPath := fmt.Sprintf("%s/%s/%s", d.Directory, originDir, localFolderPath)
-	localFolderAbsPath := fmt.Sprintf("%s%s", localRepoDir, localFolderPath)
+	localFolderAbsPath := fmt.Sprintf("%s/%s", localRepoDir, localFolderPath)
 
 	err := copy.Copy(localFolderAbsPath, dbFolderPath)
 	if err != nil {
@@ -85,29 +82,47 @@ func (d *DatabaseRepo) Write(origin url.URL, localRepoDir, localFolderPath strin
 	return nil
 }
 
-func (d *DatabaseRepo) Read(origin url.URL) ([]IDEConfig, error) {
+func (d *DatabaseRepo) Write(origins []url.URL, localRepoDir, localFolderPath string) error {
+	for _, origin := range origins {
+		err := d.writeOrigin(origin, localRepoDir, localFolderPath)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *DatabaseRepo) readOrigin(origin url.URL) ([]repository.IDEConfig, error) {
 	originDir := originURLToDir(origin)
 	dbDir := fmt.Sprintf("%s/%s", d.Directory, originDir)
 
-	exists, _ := Exists(dbDir)
+	exists, _ := fs.Exists(dbDir)
 	if !exists {
 		return nil, nil
 	}
 
-	dirs, err := ListDirs(dbDir)
-	if err != nil {
-		return nil, err
-	}
+	dirs := repository.GetIDEFolderPaths(dbDir)
 
-	ideConfigs := make([]IDEConfig, 0)
-	for _, dir := range dirs {
-		relativePath := strings.Split(dir, originDir)[1]
-		ideConfigs = append(ideConfigs, IDEConfig{
-			FsPath:       dir,
-			RelativePath: relativePath,
+	ideConfigs := make([]repository.IDEConfig, 0)
+	for dir := range dirs {
+		ideConfigs = append(ideConfigs, repository.IDEConfig{
+			FsPath:       fmt.Sprintf("%s/%s", dbDir, dir),
+			RelativePath: strings.TrimPrefix(dir, "/"),
 		})
 	}
 
+	return ideConfigs, nil
+}
+
+func (d *DatabaseRepo) Read(origins []url.URL) ([]repository.IDEConfig, error) {
+	var ideConfigs []repository.IDEConfig
+	for _, origin := range origins {
+		configs, err := d.readOrigin(origin)
+		if err != nil {
+			return nil, err
+		}
+		ideConfigs = append(ideConfigs, configs...)
+	}
 	return ideConfigs, nil
 }
 

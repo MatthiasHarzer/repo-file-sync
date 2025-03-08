@@ -1,17 +1,19 @@
 package main
 
 import (
+	"private-ide-config-sync/commands/discover"
 	"private-ide-config-sync/commands/initialize"
-	"private-ide-config-sync/commands/pull"
 	"private-ide-config-sync/commands/push"
+	"private-ide-config-sync/commands/restore"
 
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	command.AddCommand(push.Command)
-	command.AddCommand(pull.Command)
+	command.AddCommand(restore.Command)
 	command.AddCommand(initialize.Command)
+	command.AddCommand(discover.Command)
 }
 
 var command = &cobra.Command{

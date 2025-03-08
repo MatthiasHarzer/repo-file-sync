@@ -3,6 +3,7 @@ package initialize
 import (
 	"fmt"
 	"os"
+	"private-ide-config-sync/fs"
 	"private-ide-config-sync/persistance"
 
 	"github.com/fatih/color"
@@ -27,13 +28,13 @@ var Command = &cobra.Command{
 
 		dbRepoPath := persistance.DefaultDatabaseDir
 
-		exists, err := persistance.Exists(dbRepoPath)
+		exists, err := fs.Exists(dbRepoPath)
 		if err != nil {
 			panic(err)
 		}
 
 		if exists {
-			isEmpty, err := persistance.IsDirectoryEmpty(dbRepoPath)
+			isEmpty, err := fs.IsDirectoryEmpty(dbRepoPath)
 			if err != nil {
 				panic(err)
 			}
