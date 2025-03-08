@@ -1,9 +1,9 @@
 package discover
 
 import (
+	"ide-config-sync/persistance"
+	"ide-config-sync/repository"
 	"os"
-	"private-ide-config-sync/persistance"
-	"private-ide-config-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

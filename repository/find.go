@@ -2,8 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"ide-config-sync/fs"
 	"path/filepath"
-	"private-ide-config-sync/fs"
 	"strings"
 )
 

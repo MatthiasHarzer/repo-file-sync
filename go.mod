@@ -1,4 +1,4 @@
-module private-ide-config-sync
+module ide-config-sync
 
 go 1.24
 

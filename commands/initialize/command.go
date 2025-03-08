@@ -2,9 +2,9 @@ package initialize
 
 import (
 	"fmt"
+	"ide-config-sync/fs"
+	"ide-config-sync/persistance"
 	"os"
-	"private-ide-config-sync/fs"
-	"private-ide-config-sync/persistance"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

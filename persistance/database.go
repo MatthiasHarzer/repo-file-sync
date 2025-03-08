@@ -2,11 +2,11 @@ package persistance
 
 import (
 	"fmt"
+	"ide-config-sync/fs"
+	"ide-config-sync/repository"
 	"net/url"
 	"os/exec"
 	"path/filepath"
-	"private-ide-config-sync/fs"
-	"private-ide-config-sync/repository"
 	"strings"
 
 	"github.com/go-git/go-git/v5"

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"private-ide-config-sync/commands/discover"
-	"private-ide-config-sync/commands/initialize"
-	"private-ide-config-sync/commands/push"
-	"private-ide-config-sync/commands/restore"
+	"ide-config-sync/commands/discover"
+	"ide-config-sync/commands/initialize"
+	"ide-config-sync/commands/push"
+	"ide-config-sync/commands/restore"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +17,7 @@ func init() {
 }
 
 var command = &cobra.Command{
-	Use:   "private-ide-config-sync",
+	Use:   "ide-config-sync",
 	Short: "Sync IDE config files",
 	Long:  "Sync IDE config files",
 }

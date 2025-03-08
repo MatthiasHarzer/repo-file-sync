@@ -2,8 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"ide-config-sync/fs"
 	"net/url"
-	"private-ide-config-sync/fs"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/otiai10/copy"

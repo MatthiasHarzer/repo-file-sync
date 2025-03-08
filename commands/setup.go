@@ -2,10 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"ide-config-sync/persistance"
+	"ide-config-sync/repository"
 	"os"
 	"path/filepath"
-	"private-ide-config-sync/persistance"
-	"private-ide-config-sync/repository"
 
 	"github.com/fatih/color"
 )

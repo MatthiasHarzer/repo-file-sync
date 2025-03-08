@@ -2,8 +2,8 @@ package push
 
 import (
 	"fmt"
-	"private-ide-config-sync/commands"
-	"private-ide-config-sync/repository"
+	"ide-config-sync/commands"
+	"ide-config-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
