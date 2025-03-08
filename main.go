@@ -3,14 +3,14 @@ package main
 import (
 	"ide-config-sync/commands/discover"
 	"ide-config-sync/commands/initialize"
-	"ide-config-sync/commands/push"
 	"ide-config-sync/commands/restore"
+	"ide-config-sync/commands/save"
 
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	command.AddCommand(push.Command)
+	command.AddCommand(save.Command)
 	command.AddCommand(restore.Command)
 	command.AddCommand(initialize.Command)
 	command.AddCommand(discover.Command)

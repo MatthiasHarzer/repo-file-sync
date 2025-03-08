@@ -1,4 +1,4 @@
-package push
+package save
 
 import (
 	"fmt"
@@ -20,9 +20,9 @@ func init() {
 }
 
 var Command = &cobra.Command{
-	Use:   "push",
-	Short: "Push IDE config files",
-	Long:  "Push IDE config files",
+	Use:   "save",
+	Short: "Save IDE configurations to the database",
+	Long:  "Save IDE configurations to the database",
 	RunE: func(c *cobra.Command, args []string) error {
 		db, repos, err := commands.Setup(baseDir, dbDir)
 		if err != nil {
@@ -53,7 +53,7 @@ var Command = &cobra.Command{
 
 		err = db.Push()
 		if err != nil {
-			fmt.Printf("unable to push: %s\n", err)
+			fmt.Printf("unable to push to database: %s\n", err)
 			panic(err)
 		}
 
