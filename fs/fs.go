@@ -18,23 +18,6 @@ func Exists(path string) (bool, error) {
 	return false, err
 }
 
-func ListDirs(path string) ([]string, error) {
-	var dirs []string
-	err := filepath.Walk(path, func(subPath string, info fs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() && subPath != path {
-			dirs = append(dirs, filepath.ToSlash(subPath))
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return dirs, nil
-}
-
 func FindFolders(root string, folderNames []string) <-chan string {
 	var folderLookup = make(map[string]bool)
 	for _, folderName := range folderNames {
@@ -97,12 +80,4 @@ func IsDirectoryEmpty(path string) (bool, error) {
 	}
 
 	return len(entries) == 0, nil
-}
-
-func Collect[T any](c <-chan T) []T {
-	var result []T
-	for v := range c {
-		result = append(result, v)
-	}
-	return result
 }
