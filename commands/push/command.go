@@ -14,8 +14,8 @@ var (
 )
 
 func init() {
-	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "Base directory")
-	Command.Flags().StringVar(&dbDir, "db-dir", "", "DB directory")
+	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "The directory to search for repositories")
+	Command.Flags().StringVar(&dbDir, "database-repository-dir", "", "The directory to use for the database repository")
 }
 
 var Command = &cobra.Command{
@@ -23,7 +23,7 @@ var Command = &cobra.Command{
 	Short: "Push IDE config files",
 	Long:  "Push IDE config files",
 	RunE: func(c *cobra.Command, args []string) error {
-		db, repos, err := commands.Init(baseDir, dbDir)
+		db, repos, err := commands.Setup(baseDir, dbDir)
 		if err != nil {
 			panic(err)
 		}

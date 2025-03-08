@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os/exec"
-	"private-ide-config-sync/fs"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
@@ -14,7 +14,7 @@ import (
 var DefaultDatabaseDir string
 
 func init() {
-	DefaultDatabaseDir = fmt.Sprintf("%s/.ide-config-sync", fs.HomeDir())
+	DefaultDatabaseDir = filepath.ToSlash(fmt.Sprintf("%s/.ide-config-sync", HomeDir()))
 }
 
 func originURLToDir(originURL url.URL) string {
@@ -27,7 +27,7 @@ type IDEConfig struct {
 }
 
 type DatabaseRepo struct {
-	directory string
+	Directory string
 	repo      *git.Repository
 }
 
@@ -38,7 +38,24 @@ func NewDatabase(directory string) (*DatabaseRepo, error) {
 	}
 
 	return &DatabaseRepo{
-		directory: directory,
+		Directory: directory,
+		repo:      repo,
+	}, nil
+}
+
+func NewDatabaseFromURL(url, directory string) (*DatabaseRepo, error) {
+	cmd := exec.Command("git", "clone", url, directory)
+	err := cmd.Run()
+	if err != nil {
+		return nil, err
+	}
+	repo, err := git.PlainOpen(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DatabaseRepo{
+		Directory: directory,
 		repo:      repo,
 	}, nil
 }
@@ -46,24 +63,23 @@ func NewDatabase(directory string) (*DatabaseRepo, error) {
 func (d *DatabaseRepo) Write(origin url.URL, localRepoDir, localFolderPath string) error {
 	originDir := originURLToDir(origin)
 	originFolderPath := fmt.Sprintf("%s/%s", originDir, localFolderPath)
-	dbDir := fmt.Sprintf("%s/%s", d.directory, originDir)
-	dbFolderPath := fmt.Sprintf("%s/%s", dbDir, localFolderPath)
-	folderPath := fmt.Sprintf("%s%s", localRepoDir, localFolderPath)
+	dbFolderPath := fmt.Sprintf("%s/%s/%s", d.Directory, originDir, localFolderPath)
+	localFolderAbsPath := fmt.Sprintf("%s%s", localRepoDir, localFolderPath)
 
-	err := copy.Copy(folderPath, dbFolderPath)
+	err := copy.Copy(localFolderAbsPath, dbFolderPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to copy %s to %s: %s", localFolderAbsPath, dbFolderPath, err)
 	}
 
 	cmd := exec.Command("git", "add", originFolderPath, "--force")
-	cmd.Dir = d.directory
+	cmd.Dir = d.Directory
 	err = cmd.Run()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to add %s to git: %s", originFolderPath, err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update %s", originDir))
-	cmd.Dir = d.directory
+	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update '%s' with '%s'", originDir, localFolderPath))
+	cmd.Dir = d.Directory
 	_ = cmd.Run()
 
 	return nil
@@ -71,14 +87,14 @@ func (d *DatabaseRepo) Write(origin url.URL, localRepoDir, localFolderPath strin
 
 func (d *DatabaseRepo) Read(origin url.URL) ([]IDEConfig, error) {
 	originDir := originURLToDir(origin)
-	dbDir := fmt.Sprintf("%s/%s", d.directory, originDir)
+	dbDir := fmt.Sprintf("%s/%s", d.Directory, originDir)
 
-	exists, _ := fs.Exists(dbDir)
+	exists, _ := Exists(dbDir)
 	if !exists {
 		return nil, nil
 	}
 
-	dirs, err := fs.ListDirs(dbDir)
+	dirs, err := ListDirs(dbDir)
 	if err != nil {
 		return nil, err
 	}
@@ -97,12 +113,12 @@ func (d *DatabaseRepo) Read(origin url.URL) ([]IDEConfig, error) {
 
 func (d *DatabaseRepo) Push() error {
 	cmd := exec.Command("git", "push")
-	cmd.Dir = d.directory
+	cmd.Dir = d.Directory
 	return cmd.Run()
 }
 
 func (d *DatabaseRepo) Pull() error {
 	cmd := exec.Command("git", "pull")
-	cmd.Dir = d.directory
+	cmd.Dir = d.Directory
 	return cmd.Run()
 }

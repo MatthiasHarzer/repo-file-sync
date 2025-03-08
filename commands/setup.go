@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func Init(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.RepoConfigManager, error) {
+func Setup(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.ConfigManager, error) {
 	var err error
 	if baseDir == "" {
 		baseDir, err = os.Getwd()
@@ -44,10 +44,14 @@ func Init(baseDir, dbDir string) (*persistance.DatabaseRepo, []*repository.RepoC
 		return nil, nil, err
 	}
 
-	color.RGB(200, 200, 200).Print(fmt.Sprintf("Discovered %d repositories in ", len(repos)))
+	if len(repos) == 1 {
+		color.RGB(200, 200, 200).Print("Discovered 1 repository in ")
+	} else {
+		color.RGB(200, 200, 200).Print(fmt.Sprintf("Discovered %d repositories in ", len(repos)))
+	}
 	color.Green(baseDir)
 
-	var repoConfigs []*repository.RepoConfigManager
+	var repoConfigs []*repository.ConfigManager
 	for _, repo := range repos {
 		r, err := repository.NewRepoConfigManager(db, repo)
 		if err != nil {

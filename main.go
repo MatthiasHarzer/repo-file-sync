@@ -1,6 +1,7 @@
 package main
 
 import (
+	"private-ide-config-sync/commands/initialize"
 	"private-ide-config-sync/commands/pull"
 	"private-ide-config-sync/commands/push"
 
@@ -10,6 +11,7 @@ import (
 func init() {
 	command.AddCommand(push.Command)
 	command.AddCommand(pull.Command)
+	command.AddCommand(initialize.Command)
 }
 
 var command = &cobra.Command{

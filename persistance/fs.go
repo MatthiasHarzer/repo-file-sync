@@ -1,4 +1,4 @@
-package fs
+package persistance
 
 import (
 	"errors"
@@ -35,11 +35,6 @@ func ListDirs(path string) ([]string, error) {
 	return dirs, nil
 }
 
-func GetFolderName(path string) string {
-	_, folderName := filepath.Split(path)
-	return folderName
-}
-
 func FindFolders(root string, folderNames []string) ([]string, error) {
 	var folderLookup = make(map[string]bool)
 	for _, folderName := range folderNames {
@@ -72,4 +67,29 @@ func FindFolders(root string, folderNames []string) ([]string, error) {
 func HomeDir() string {
 	home, _ := os.UserHomeDir()
 	return home
+}
+
+func IsDirectory(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	return fi.IsDir(), nil
+}
+
+func IsDirectoryEmpty(path string) (bool, error) {
+	isDir, err := IsDirectory(path)
+	if err != nil {
+		return false, err
+	}
+	if !isDir {
+		return false, errors.New("not a directory")
+	}
+
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return false, err
+	}
+
+	return len(entries) == 0, nil
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
-	"private-ide-config-sync/fs"
 	"private-ide-config-sync/persistance"
 	"strings"
 
@@ -43,13 +42,13 @@ func getOrigins(repoDir string) ([]url.URL, error) {
 	return maps.Keys(remoteURLs), nil
 }
 
-type RepoConfigManager struct {
+type ConfigManager struct {
 	LocalRepoDirectory string
 	remotes            []url.URL
 	db                 *persistance.DatabaseRepo
 }
 
-func NewRepoConfigManager(db *persistance.DatabaseRepo, localRepoDirectory string) (*RepoConfigManager, error) {
+func NewRepoConfigManager(db *persistance.DatabaseRepo, localRepoDirectory string) (*ConfigManager, error) {
 	if strings.HasSuffix(localRepoDirectory, ".git") {
 		localRepoDirectory = strings.TrimSuffix(localRepoDirectory, ".git")
 	}
@@ -60,25 +59,25 @@ func NewRepoConfigManager(db *persistance.DatabaseRepo, localRepoDirectory strin
 		return nil, err
 	}
 
-	return &RepoConfigManager{
+	return &ConfigManager{
 		LocalRepoDirectory: localRepoDirectory,
 		remotes:            remoteURLs,
 		db:                 db,
 	}, err
 }
 
-func (g *RepoConfigManager) getIdeFolderPaths() ([]string, error) {
-	return fs.FindFolders(g.LocalRepoDirectory, ideFolders)
+func (c *ConfigManager) getIdeFolderPaths() ([]string, error) {
+	return persistance.FindFolders(c.LocalRepoDirectory, ideFolders)
 }
 
-func (g *RepoConfigManager) SaveOrigin(originURL url.URL) error {
-	idePaths, err := g.getIdeFolderPaths()
+func (c *ConfigManager) SaveOrigin(originURL url.URL) error {
+	idePaths, err := c.getIdeFolderPaths()
 	if err != nil {
 		return err
 	}
 
 	for _, ideFolder := range idePaths {
-		err := g.db.Write(originURL, g.LocalRepoDirectory, ideFolder)
+		err := c.db.Write(originURL, c.LocalRepoDirectory, ideFolder)
 		if err != nil {
 			return err
 		}
@@ -86,9 +85,9 @@ func (g *RepoConfigManager) SaveOrigin(originURL url.URL) error {
 	return nil
 }
 
-func (g *RepoConfigManager) Save() error {
-	for _, remote := range g.remotes {
-		err := g.SaveOrigin(remote)
+func (c *ConfigManager) Save() error {
+	for _, remote := range c.remotes {
+		err := c.SaveOrigin(remote)
 		if err != nil {
 			return err
 		}
@@ -96,14 +95,14 @@ func (g *RepoConfigManager) Save() error {
 	return nil
 }
 
-func (g *RepoConfigManager) PullRemote(origin url.URL) error {
-	dbPaths, err := g.db.Read(origin)
+func (c *ConfigManager) PullRemote(origin url.URL) error {
+	dbPaths, err := c.db.Read(origin)
 	if err != nil {
 		return err
 	}
 
 	for _, path := range dbPaths {
-		repoFolderPath := fmt.Sprintf("%s/%s", g.LocalRepoDirectory, path.RelativePath)
+		repoFolderPath := fmt.Sprintf("%s/%s", c.LocalRepoDirectory, path.RelativePath)
 		err := copy.Copy(path.FsPath, repoFolderPath)
 		if err != nil {
 			return err
@@ -113,9 +112,9 @@ func (g *RepoConfigManager) PullRemote(origin url.URL) error {
 	return nil
 }
 
-func (g *RepoConfigManager) Pull() error {
-	for _, remote := range g.remotes {
-		err := g.PullRemote(remote)
+func (c *ConfigManager) Pull() error {
+	for _, remote := range c.remotes {
+		err := c.PullRemote(remote)
 		if err != nil {
 			return err
 		}

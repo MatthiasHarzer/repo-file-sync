@@ -22,7 +22,7 @@ var Command = &cobra.Command{
 	Short: "Pull IDE config files",
 	Long:  "Pull IDE config files",
 	RunE: func(c *cobra.Command, args []string) error {
-		_, repos, err := commands.Init(baseDir, dbDir)
+		_, repos, err := commands.Setup(baseDir, dbDir)
 		if err != nil {
 			panic(err)
 		}

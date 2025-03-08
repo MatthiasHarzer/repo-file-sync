@@ -3,12 +3,12 @@ package repository
 import (
 	"fmt"
 	"path/filepath"
-	"private-ide-config-sync/fs"
+	"private-ide-config-sync/persistance"
 	"strings"
 )
 
 func FindRepositories(base string, ignore string) ([]string, error) {
-	repositories, err := fs.FindFolders(base, []string{".git"})
+	repositories, err := persistance.FindFolders(base, []string{".git"})
 	if err != nil {
 		return nil, err
 	}
