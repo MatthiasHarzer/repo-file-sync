@@ -20,8 +20,8 @@ func init() {
 	DefaultDatabaseDir = filepath.ToSlash(fmt.Sprintf("%s/.ide-config-sync", fsutil.HomeDir()))
 }
 
-func originURLToDir(originURL url.URL) string {
-	return fmt.Sprintf("%s%s", originURL.Host, originURL.Path)
+func remoteURLToDir(remoteURL url.URL) string {
+	return fmt.Sprintf("%s%s", remoteURL.Host, remoteURL.Path)
 }
 
 type DatabaseRepo struct {
@@ -51,7 +51,7 @@ func InitializeFromURL(url, directory string) (*DatabaseRepo, error) {
 }
 
 func (d *DatabaseRepo) writeRemote(remote url.URL, repo, localFolderPath string) error {
-	remoteAsPath := originURLToDir(remote)
+	remoteAsPath := remoteURLToDir(remote)
 	configFolderPath := fmt.Sprintf("%s/%s", remoteAsPath, localFolderPath)
 	dbFolderPath := fmt.Sprintf("%s/%s/%s", d.Directory, remoteAsPath, localFolderPath)
 	localFolderAbsPath := fmt.Sprintf("%s/%s", repo, localFolderPath)
@@ -91,7 +91,7 @@ func (d *DatabaseRepo) Write(repo, relativeConfigPath string) error {
 }
 
 func (d *DatabaseRepo) readRemote(remote url.URL) ([]ide.Config, error) {
-	remoteAsPath := originURLToDir(remote)
+	remoteAsPath := remoteURLToDir(remote)
 	dbDir := fmt.Sprintf("%s/%s", d.Directory, remoteAsPath)
 
 	exists, _ := fsutil.Exists(dbDir)
@@ -119,8 +119,8 @@ func (d *DatabaseRepo) Read(repo string) ([]ide.Config, error) {
 	}
 
 	var ideConfigs []ide.Config
-	for _, origin := range remotes {
-		configs, err := d.readRemote(origin)
+	for _, remote := range remotes {
+		configs, err := d.readRemote(remote)
 		if err != nil {
 			return nil, err
 		}
