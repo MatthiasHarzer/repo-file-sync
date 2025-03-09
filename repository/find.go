@@ -8,7 +8,7 @@ import (
 )
 
 func FindRepositories(base string, ignore string) <-chan string {
-	repositories := fs.FindFolders(base, []string{".git"})
+	repositories := fs.FindFolders(base, []string{".git$"}, ignorePatterns)
 
 	repos := make(chan string)
 

@@ -15,6 +15,12 @@ var ideFolders = []string{
 	".vscode",
 }
 
+var ignorePatterns = []string{
+	"node_modules",
+	"venv",
+	".venv",
+}
+
 type IDEConfig struct {
 	FsPath       string
 	RelativePath string
@@ -46,7 +52,7 @@ func GetOrigins(repoDir string) ([]url.URL, error) {
 }
 
 func GetIDEFolderPaths(base string) <-chan string {
-	return fs.FindFolders(base, ideFolders)
+	return fs.FindFolders(base, ideFolders, ignorePatterns)
 }
 
 func OverwriteIDEFolder(repo string, config IDEConfig) error {

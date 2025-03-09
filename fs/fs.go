@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 func Exists(path string) (bool, error) {
@@ -18,37 +19,71 @@ func Exists(path string) (bool, error) {
 	return false, err
 }
 
-func FindFolders(root string, folderNames []string) <-chan string {
-	var folderLookup = make(map[string]bool)
-	for _, folderName := range folderNames {
-		folderLookup[folderName] = true
+func shouldSkipDir(path string, excludePatterns []string) bool {
+	for _, pattern := range excludePatterns {
+		matched, _ := regexp.MatchString(pattern, filepath.Base(path))
+		if matched {
+			return true
+		}
 	}
+	return false
+}
+
+func shouldIncludeDir(path string, includePatterns []string) bool {
+	if len(includePatterns) == 0 {
+		return true
+	}
+
+	for _, pattern := range includePatterns {
+		matched, _ := regexp.MatchString(pattern, filepath.Base(path))
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
+func FindFolders(root string, includePatterns []string, excludePatterns []string) <-chan string {
+	queue := []string{root}
 
 	folders := make(chan string)
 
 	go func() {
 		defer close(folders)
 
-		_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		for len(queue) > 0 {
+			dir := queue[0]
+			queue = queue[1:]
+
+			entries, err := os.ReadDir(dir)
 			if err != nil {
-				return err
-			}
-			if !d.IsDir() {
-				return nil
+				continue
 			}
 
-			name := filepath.Base(path)
-
-			if folderLookup[name] {
-				rel, err := filepath.Rel(root, path)
-				if err != nil {
-					return err
+			for _, entry := range entries {
+				fullPath := filepath.Join(dir, entry.Name())
+				if !entry.IsDir() {
+					continue
 				}
-				folders <- filepath.ToSlash(rel)
+
+				if shouldSkipDir(fullPath, excludePatterns) {
+					continue
+				}
+				if shouldIncludeDir(fullPath, includePatterns) {
+					relPath, err := filepath.Rel(root, fullPath)
+					if err != nil {
+						continue
+					}
+					folders <- relPath
+					continue
+				}
+
+				queue = append(queue, fullPath)
 			}
-			return nil
-		})
+		}
+
 	}()
+
 	return folders
 }
 
