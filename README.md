@@ -4,13 +4,26 @@ A tool to save and restore IDE settings (`.vscode`, `.idea`) inside Git reposito
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <br>
 
-## Setup
-1. Download the [latest release](https://github.com/MatthiasHarzer/ide-config-sync/releases) and add the executable to your `PATH`.
-2. Create an empty Git repository as a Database on an online service (e.g. GitHub, GitLab, Bitbucket) to store and sync your IDE settings.
-3. Run `ide-config-sync init --url <URL>` with the URL of the repository from step 2.
+## Setup 
+Download the [latest release](https://github.com/MatthiasHarzer/ide-config-sync/releases) and add the executable to your `PATH`.
+
+## Local only
+This will save the IDE configurations local only, without the need of a remote repository.
+1. Run `ide-config-sync init`.
+2. Optionally provide a directory to store the Database-Repository, however the default one is recommended.
+3. Select `y` when asked to set up local only
+
+## Remote repository
+This will save the IDE configurations to a remote repository to sync them between multiple devices.
+1. Run `ide-config-sync init` and provide a directory to store the Database-Repository.
+2. Optionally provide a directory to store the Database-Repository, however the default one is recommended.
+3. Select `n` when asked to set up local only
+4. Provide the URL of the remote repository to store the IDE configurations
+    - For that, set up a new repository on GitHub, GitLab, Bitbucket, etc.
+    - Copy the URL of the repository and paste it into the prompt
 
 ## Usage
-> All commands support the `--dir <directory>` flag to search and save/restore IDE settings in a specific directory. If no directory is specified, the current directory is used.
+> All commands support the `--dir <directory>` / `-d <directory>` flag to search and save/restore IDE settings in a specific directory. If no directory is specified, the current directory is used.
 
 ### Save IDE settings
 1. Run `ide-config-sync save` to crawl the current directory recursively and save all IDE settings inside the Database-Repository.
