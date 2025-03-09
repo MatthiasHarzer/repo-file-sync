@@ -1,5 +1,5 @@
 # IDE Config Sync
-A tool to save and restore IDE settings (`.vscode`, `.idea`, ...) inside Git repositories, which excludes those files.
+A tool to save and restore IDE settings (`.vscode`, `.idea`) inside Git repositories, which excludes those files.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <br>
@@ -10,11 +10,16 @@ A tool to save and restore IDE settings (`.vscode`, `.idea`, ...) inside Git rep
 3. Run `ide-config-sync init --url <URL>` with the URL of the repository from step 2.
 
 ## Usage
+> All commands support the `--dir <directory>` flag to search and save/restore IDE settings in a specific directory. If no directory is specified, the current directory is used.
+
 ### Save IDE settings
 1. Run `ide-config-sync save` to crawl the current directory recursively and save all IDE settings inside the Database-Repository.
 
 ### Restore IDE settings
 1. Run `ide-config-sync restore` to restore all IDE settings from the Database-Repository to the current directory.
+
+### Dry run / discover
+1. Run `ide-config-sync discover` to see which IDE settings would be saved or restored.
 
 ## Supported IDEs
 - Visual Studio Code (`.vscode`)

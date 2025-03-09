@@ -12,7 +12,7 @@ import (
 var baseDir string
 
 func init() {
-	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "The directory to search for repositories")
+	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "The directory to search for repositories. Defaults to the current working directory.")
 }
 
 var Command = &cobra.Command{
