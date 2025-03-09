@@ -3,6 +3,7 @@ package save
 import (
 	"fmt"
 	"ide-config-sync/commands"
+	"ide-config-sync/persistance"
 	"ide-config-sync/repository"
 
 	"github.com/fatih/color"
@@ -11,12 +12,10 @@ import (
 
 var (
 	baseDir string
-	dbDir   string
 )
 
 func init() {
-	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "The directory to search for repositories")
-	Command.Flags().StringVar(&dbDir, "database-repository-dir", "", "The directory to use for the database repository")
+	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "The directory to search for repositories. Defaults to the current working directory.")
 }
 
 var Command = &cobra.Command{
@@ -24,7 +23,7 @@ var Command = &cobra.Command{
 	Short: "Save IDE configurations to the database",
 	Long:  "Save IDE configurations to the database",
 	RunE: func(c *cobra.Command, args []string) error {
-		db, repos, err := commands.Setup(baseDir, dbDir)
+		db, repos, err := commands.Setup(baseDir, persistance.DefaultDatabaseDir)
 		if err != nil {
 			panic(err)
 		}

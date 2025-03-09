@@ -6,8 +6,6 @@ import (
 	"ide-config-sync/repository"
 	"os"
 	"path/filepath"
-
-	"github.com/fatih/color"
 )
 
 func Setup(baseDir, dbDir string) (*persistance.DatabaseRepo, <-chan string, error) {
@@ -26,12 +24,9 @@ func Setup(baseDir, dbDir string) (*persistance.DatabaseRepo, <-chan string, err
 	baseDir = filepath.ToSlash(baseDir)
 	dbDir = filepath.ToSlash(dbDir)
 
-	color.RGB(200, 200, 200).Print("Using database dir ")
-	color.Green(dbDir)
-
 	db, err := persistance.NewDatabase(dbDir)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not open database repo: %e", err)
+		return nil, nil, fmt.Errorf("could not open database repo\n\ndid you run `ide-config-sync init`?")
 	}
 
 	err = db.Pull()

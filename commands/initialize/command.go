@@ -1,9 +1,11 @@
 package initialize
 
 import (
+	"bufio"
 	"fmt"
 	"ide-config-sync/fs"
 	"ide-config-sync/persistance"
+	"net/url"
 	"os"
 
 	"github.com/fatih/color"
@@ -21,9 +23,21 @@ var Command = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize IDE config sync",
 	Long:  "Initialize IDE config sync",
-	RunE: func(c *cobra.Command, args []string) error {
+	Run: func(c *cobra.Command, args []string) {
 		if databaseRepositoryURL == "" {
-			return fmt.Errorf("you must provide a database repository URL")
+			scanner := bufio.NewScanner(os.Stdin)
+			fmt.Print("Enter the database repository URL: ")
+			scanned := scanner.Scan()
+			if !scanned {
+				color.Red("failed to read input")
+				return
+			}
+			databaseRepositoryURL = scanner.Text()
+		}
+		_, err := url.Parse(databaseRepositoryURL)
+		if err != nil {
+			color.Red("invalid URL: %s", err)
+			return
 		}
 
 		dbRepoPath := persistance.DefaultDatabaseDir
@@ -39,7 +53,8 @@ var Command = &cobra.Command{
 				panic(err)
 			}
 			if !isEmpty {
-				return fmt.Errorf("database repository directory must be empty")
+				color.Red("database repository directory must be empty")
+				return
 			}
 		} else {
 			err = os.Mkdir(dbRepoPath, os.ModePerm)
@@ -48,12 +63,12 @@ var Command = &cobra.Command{
 			}
 		}
 
-		_, err = persistance.NewDatabaseFromURL(databaseRepositoryURL, dbRepoPath)
+		_, err = persistance.InitializeFromURL(databaseRepositoryURL, dbRepoPath)
 		if err != nil {
-			panic(fmt.Errorf("failed to create database repository: %s", err))
+			color.Red("failed to create database repository: %s", err)
+			return
 		}
 
 		color.Green("Database repository created at %s", dbRepoPath)
-		return nil
 	},
 }

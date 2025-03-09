@@ -2,6 +2,7 @@ package restore
 
 import (
 	"ide-config-sync/commands"
+	"ide-config-sync/persistance"
 	"ide-config-sync/repository"
 
 	"github.com/fatih/color"
@@ -10,12 +11,10 @@ import (
 
 var (
 	baseDir string
-	dbDir   string
 )
 
 func init() {
-	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "Base directory")
-	Command.Flags().StringVar(&dbDir, "db-dir", "", "DB directory")
+	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "The directory to search for repositories. Defaults to the current working directory.")
 }
 
 var Command = &cobra.Command{
@@ -23,7 +22,7 @@ var Command = &cobra.Command{
 	Short: "Restore IDE configs from the database",
 	Long:  "Restore IDE configs from the database",
 	RunE: func(c *cobra.Command, args []string) error {
-		db, repos, err := commands.Setup(baseDir, dbDir)
+		db, repos, err := commands.Setup(baseDir, persistance.DefaultDatabaseDir)
 		if err != nil {
 			panic(err)
 		}

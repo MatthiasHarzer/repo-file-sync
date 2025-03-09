@@ -29,32 +29,24 @@ type DatabaseRepo struct {
 }
 
 func NewDatabase(directory string) (*DatabaseRepo, error) {
-	repo, err := git.PlainOpen(directory)
+	_, err := git.PlainOpen(directory)
 	if err != nil {
 		return nil, err
 	}
 
 	return &DatabaseRepo{
 		Directory: directory,
-		repo:      repo,
 	}, nil
 }
 
-func NewDatabaseFromURL(url, directory string) (*DatabaseRepo, error) {
+func InitializeFromURL(url, directory string) (*DatabaseRepo, error) {
 	cmd := exec.Command("git", "clone", url, directory)
 	err := cmd.Run()
 	if err != nil {
 		return nil, err
 	}
-	repo, err := git.PlainOpen(directory)
-	if err != nil {
-		return nil, err
-	}
 
-	return &DatabaseRepo{
-		Directory: directory,
-		repo:      repo,
-	}, nil
+	return NewDatabase(directory)
 }
 
 func (d *DatabaseRepo) writeOrigin(origin url.URL, localRepoDir, localFolderPath string) error {
