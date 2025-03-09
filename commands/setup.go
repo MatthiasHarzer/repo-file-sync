@@ -2,8 +2,8 @@ package commands
 
 import (
 	"fmt"
+	"ide-config-sync/ide"
 	"ide-config-sync/persistance"
-	"ide-config-sync/repository"
 	"os"
 	"path/filepath"
 )
@@ -34,6 +34,6 @@ func Setup(baseDir, dbDir string) (*persistance.DatabaseRepo, <-chan string, err
 		return nil, nil, err
 	}
 
-	reposCh := repository.FindRepositories(baseDir, dbDir)
+	reposCh := ide.FindRepositories(baseDir, dbDir)
 	return db, reposCh, nil
 }

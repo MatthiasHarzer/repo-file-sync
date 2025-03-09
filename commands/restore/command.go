@@ -2,8 +2,8 @@ package restore
 
 import (
 	"ide-config-sync/commands"
+	"ide-config-sync/ide"
 	"ide-config-sync/persistance"
-	"ide-config-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -30,18 +30,13 @@ var Command = &cobra.Command{
 		for repo := range repos {
 			println(color.GreenString("+"), "Discovered", color.GreenString(repo))
 
-			origins, err := repository.GetOrigins(repo)
-			if err != nil {
-				panic(err)
-			}
-
-			knownConfigs, err := db.Read(origins)
+			knownConfigs, err := db.Read(repo)
 			if err != nil {
 				panic(err)
 			}
 
 			for _, config := range knownConfigs {
-				err = repository.OverwriteIDEFolder(repo, config)
+				err = ide.WriteIDEFolder(repo, config)
 				if err != nil {
 					color.Red("Failed to restore %s: %s", config.RelativePath, err)
 					continue

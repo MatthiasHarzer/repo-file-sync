@@ -1,8 +1,8 @@
 package discover
 
 import (
+	"ide-config-sync/ide"
 	"ide-config-sync/persistance"
-	"ide-config-sync/repository"
 	"os"
 
 	"github.com/fatih/color"
@@ -28,12 +28,12 @@ var Command = &cobra.Command{
 			}
 		}
 
-		repos := repository.FindRepositories(baseDir, persistance.DefaultDatabaseDir)
+		repos := ide.FindRepositories(baseDir, persistance.DefaultDatabaseDir)
 
 		for repo := range repos {
 			println(color.GreenString("+"), "Discovered ", color.GreenString(repo))
 
-			ideConfigs := repository.GetIDEFolderPaths(repo)
+			ideConfigs := ide.ReadIDEFolderPaths(repo)
 
 			for path := range ideConfigs {
 				println(color.BlueString("  +"), "IDE config found at", color.BlueString(path))

@@ -1,23 +1,12 @@
-package fs
+package ide
 
 import (
-	"errors"
-	"io/fs"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
-
-func Exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if errors.Is(err, fs.ErrNotExist) {
-		return false, nil
-	}
-	return false, err
-}
 
 func shouldSkipDir(path string, excludePatterns []string) bool {
 	for _, pattern := range excludePatterns {
@@ -43,7 +32,7 @@ func shouldIncludeDir(path string, includePatterns []string) bool {
 	return false
 }
 
-func FindFolders(root string, includePatterns []string, excludePatterns []string) <-chan string {
+func findFolders(root string, includePatterns []string, excludePatterns []string) <-chan string {
 	queue := []string{root}
 
 	folders := make(chan string)
@@ -87,32 +76,35 @@ func FindFolders(root string, includePatterns []string, excludePatterns []string
 	return folders
 }
 
-func HomeDir() string {
-	home, _ := os.UserHomeDir()
-	return home
+func ReadIDEFolderPaths(repo string) <-chan string {
+	return findFolders(repo, ideFolders, ignorePatterns)
 }
 
-func IsDirectory(path string) (bool, error) {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return false, err
-	}
-	return fi.IsDir(), nil
-}
+func FindRepositories(base string, ignoredRepo string) <-chan string {
+	repoIgnorePatterns := append([]string{ignoredRepo}, ignorePatterns...)
+	repositories := findFolders(base, []string{".git$"}, repoIgnorePatterns)
 
-func IsDirectoryEmpty(path string) (bool, error) {
-	isDir, err := IsDirectory(path)
-	if err != nil {
-		return false, err
-	}
-	if !isDir {
-		return false, errors.New("not a directory")
-	}
+	repos := make(chan string)
 
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return false, err
-	}
+	go func() {
+		defer close(repos)
 
-	return len(entries) == 0, nil
+		known := make(map[string]bool)
+
+		for repository := range repositories {
+			correctSlash := filepath.ToSlash(repository)
+			noDotGit := strings.TrimSuffix(correctSlash, ".git")
+			repoPath := strings.TrimSuffix(filepath.ToSlash(fmt.Sprintf("%s/%s", base, noDotGit)), "/")
+			for folder := range known {
+				if strings.HasPrefix(repoPath, folder) {
+					continue
+				}
+			}
+
+			known[repoPath] = true
+			repos <- repoPath
+		}
+	}()
+
+	return repos
 }

@@ -3,7 +3,7 @@ package initialize
 import (
 	"bufio"
 	"fmt"
-	"ide-config-sync/fs"
+	"ide-config-sync/fsutil"
 	"ide-config-sync/persistance"
 	"net/url"
 	"os"
@@ -42,13 +42,13 @@ var Command = &cobra.Command{
 
 		dbRepoPath := persistance.DefaultDatabaseDir
 
-		exists, err := fs.Exists(dbRepoPath)
+		exists, err := fsutil.Exists(dbRepoPath)
 		if err != nil {
 			panic(err)
 		}
 
 		if exists {
-			isEmpty, err := fs.IsDirectoryEmpty(dbRepoPath)
+			isEmpty, err := fsutil.IsDirectoryEmpty(dbRepoPath)
 			if err != nil {
 				panic(err)
 			}

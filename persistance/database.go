@@ -2,7 +2,8 @@ package persistance
 
 import (
 	"fmt"
-	"ide-config-sync/fs"
+	"ide-config-sync/fsutil"
+	"ide-config-sync/ide"
 	"ide-config-sync/repository"
 	"net/url"
 	"os/exec"
@@ -16,7 +17,7 @@ import (
 var DefaultDatabaseDir string
 
 func init() {
-	DefaultDatabaseDir = filepath.ToSlash(fmt.Sprintf("%s/.ide-config-sync", fs.HomeDir()))
+	DefaultDatabaseDir = filepath.ToSlash(fmt.Sprintf("%s/.ide-config-sync", fsutil.HomeDir()))
 }
 
 func originURLToDir(originURL url.URL) string {
@@ -49,34 +50,39 @@ func InitializeFromURL(url, directory string) (*DatabaseRepo, error) {
 	return NewDatabase(directory)
 }
 
-func (d *DatabaseRepo) writeOrigin(origin url.URL, localRepoDir, localFolderPath string) error {
-	originDir := originURLToDir(origin)
-	originFolderPath := fmt.Sprintf("%s/%s", originDir, localFolderPath)
-	dbFolderPath := fmt.Sprintf("%s/%s/%s", d.Directory, originDir, localFolderPath)
-	localFolderAbsPath := fmt.Sprintf("%s/%s", localRepoDir, localFolderPath)
+func (d *DatabaseRepo) writeRemote(remote url.URL, repo, localFolderPath string) error {
+	remoteAsPath := originURLToDir(remote)
+	configFolderPath := fmt.Sprintf("%s/%s", remoteAsPath, localFolderPath)
+	dbFolderPath := fmt.Sprintf("%s/%s/%s", d.Directory, remoteAsPath, localFolderPath)
+	localFolderAbsPath := fmt.Sprintf("%s/%s", repo, localFolderPath)
 
 	err := copy.Copy(localFolderAbsPath, dbFolderPath)
 	if err != nil {
 		return fmt.Errorf("failed to copy %s to %s: %s", localFolderAbsPath, dbFolderPath, err)
 	}
 
-	cmd := exec.Command("git", "add", originFolderPath, "--force")
+	cmd := exec.Command("git", "add", configFolderPath, "--force")
 	cmd.Dir = d.Directory
 	err = cmd.Run()
 	if err != nil {
-		return fmt.Errorf("failed to add %s to git: %s", originFolderPath, err)
+		return fmt.Errorf("failed to add %s to git: %s", configFolderPath, err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update '%s' with '%s'", originDir, localFolderPath))
+	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update '%s' with '%s'", remoteAsPath, localFolderPath))
 	cmd.Dir = d.Directory
 	_ = cmd.Run()
 
 	return nil
 }
 
-func (d *DatabaseRepo) Write(origins []url.URL, localRepoDir, localFolderPath string) error {
-	for _, origin := range origins {
-		err := d.writeOrigin(origin, localRepoDir, localFolderPath)
+func (d *DatabaseRepo) Write(repo, relativeConfigPath string) error {
+	remotes, err := repository.ReadRemotes(repo)
+	if err != nil {
+		return err
+	}
+
+	for _, remote := range remotes {
+		err := d.writeRemote(remote, repo, relativeConfigPath)
 		if err != nil {
 			return err
 		}
@@ -84,20 +90,20 @@ func (d *DatabaseRepo) Write(origins []url.URL, localRepoDir, localFolderPath st
 	return nil
 }
 
-func (d *DatabaseRepo) readOrigin(origin url.URL) ([]repository.IDEConfig, error) {
-	originDir := originURLToDir(origin)
-	dbDir := fmt.Sprintf("%s/%s", d.Directory, originDir)
+func (d *DatabaseRepo) readRemote(remote url.URL) ([]ide.Config, error) {
+	remoteAsPath := originURLToDir(remote)
+	dbDir := fmt.Sprintf("%s/%s", d.Directory, remoteAsPath)
 
-	exists, _ := fs.Exists(dbDir)
+	exists, _ := fsutil.Exists(dbDir)
 	if !exists {
 		return nil, nil
 	}
 
-	dirs := repository.GetIDEFolderPaths(dbDir)
+	dirs := ide.ReadIDEFolderPaths(dbDir)
 
-	ideConfigs := make([]repository.IDEConfig, 0)
+	ideConfigs := make([]ide.Config, 0)
 	for dir := range dirs {
-		ideConfigs = append(ideConfigs, repository.IDEConfig{
+		ideConfigs = append(ideConfigs, ide.Config{
 			FsPath:       fmt.Sprintf("%s/%s", dbDir, dir),
 			RelativePath: strings.TrimPrefix(dir, "/"),
 		})
@@ -106,10 +112,15 @@ func (d *DatabaseRepo) readOrigin(origin url.URL) ([]repository.IDEConfig, error
 	return ideConfigs, nil
 }
 
-func (d *DatabaseRepo) Read(origins []url.URL) ([]repository.IDEConfig, error) {
-	var ideConfigs []repository.IDEConfig
-	for _, origin := range origins {
-		configs, err := d.readOrigin(origin)
+func (d *DatabaseRepo) Read(repo string) ([]ide.Config, error) {
+	remotes, err := repository.ReadRemotes(repo)
+	if err != nil {
+		return nil, err
+	}
+
+	var ideConfigs []ide.Config
+	for _, origin := range remotes {
+		configs, err := d.readRemote(origin)
 		if err != nil {
 			return nil, err
 		}

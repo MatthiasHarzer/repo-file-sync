@@ -3,8 +3,8 @@ package save
 import (
 	"fmt"
 	"ide-config-sync/commands"
+	"ide-config-sync/ide"
 	"ide-config-sync/persistance"
-	"ide-config-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -31,14 +31,9 @@ var Command = &cobra.Command{
 		for repo := range repos {
 			println(color.GreenString("+"), "Discovered", color.GreenString(repo))
 
-			origins, err := repository.GetOrigins(repo)
-			if err != nil {
-				panic(err)
-			}
-
-			ideFolders := repository.GetIDEFolderPaths(repo)
+			ideFolders := ide.ReadIDEFolderPaths(repo)
 			for ideConfig := range ideFolders {
-				err := db.Write(origins, repo, ideConfig)
+				err := db.Write(repo, ideConfig)
 				if err != nil {
 					color.Red("Failed to write %s to database: %s", ideConfig, err)
 					continue
