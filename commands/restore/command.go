@@ -3,7 +3,6 @@ package restore
 import (
 	"ide-config-sync/commands"
 	"ide-config-sync/ide"
-	"ide-config-sync/persistance"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -22,7 +21,7 @@ var Command = &cobra.Command{
 	Short: "Restore IDE configs from the database",
 	Long:  "Restore IDE configs from the database",
 	RunE: func(c *cobra.Command, args []string) error {
-		db, repos, err := commands.Setup(baseDir, persistance.DefaultDatabaseDir)
+		db, repos, _, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}

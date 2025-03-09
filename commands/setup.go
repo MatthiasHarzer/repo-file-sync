@@ -2,38 +2,42 @@ package commands
 
 import (
 	"fmt"
+	"ide-config-sync/config"
 	"ide-config-sync/ide"
 	"ide-config-sync/persistance"
 	"os"
 	"path/filepath"
 )
 
-func Setup(baseDir, dbDir string) (*persistance.DatabaseRepo, <-chan string, error) {
+func Setup(baseDir string) (*persistance.DatabaseRepo, <-chan string, *config.Config, error) {
 	var err error
 	if baseDir == "" {
 		baseDir, err = os.Getwd()
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
-	if dbDir == "" {
-		dbDir = persistance.DefaultDatabaseDir
-	}
-
 	baseDir = filepath.ToSlash(baseDir)
-	dbDir = filepath.ToSlash(dbDir)
 
-	db, err := persistance.NewDatabase(dbDir)
+	cfg, err := config.Load()
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not open database repo\n\ndid you run `ide-config-sync init`?")
+		return nil, nil, nil, err
 	}
 
-	err = db.Pull()
+	db, err := persistance.NewDatabase(cfg.DatabasePath)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, fmt.Errorf("could not open database repo\n\ndid you run `ide-config-sync init`?")
 	}
 
-	reposCh := ide.FindRepositories(baseDir, dbDir)
-	return db, reposCh, nil
+	if !cfg.LocalOnly {
+		err = db.Pull()
+		if err != nil {
+			return nil, nil, nil, err
+		}
+	}
+
+	reposCh := ide.FindRepositories(baseDir, cfg.DatabasePath)
+
+	return db, reposCh, cfg, nil
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"ide-config-sync/commands"
 	"ide-config-sync/ide"
-	"ide-config-sync/persistance"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -23,7 +22,7 @@ var Command = &cobra.Command{
 	Short: "Save IDE configurations to the database",
 	Long:  "Save IDE configurations to the database",
 	RunE: func(c *cobra.Command, args []string) error {
-		db, repos, err := commands.Setup(baseDir, persistance.DefaultDatabaseDir)
+		db, repos, cfg, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}
@@ -45,13 +44,18 @@ var Command = &cobra.Command{
 
 		println()
 
+		if cfg.LocalOnly {
+			return nil
+		}
+
+		println("Pushing changes to", color.GreenString(cfg.DatabaseRepoURL))
 		err = db.Push()
 		if err != nil {
-			fmt.Printf("unable to push to database: %s\n", err)
+			fmt.Printf("unable to push changes: %s\n", err)
 			panic(err)
 		}
 
-		color.RGB(200, 200, 200).Print("Pushed changes to database")
+		color.RGB(200, 200, 200).Print("Pushed changes")
 
 		return nil
 	},

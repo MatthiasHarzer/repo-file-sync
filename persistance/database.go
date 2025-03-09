@@ -7,18 +7,11 @@ import (
 	"ide-config-sync/repository"
 	"net/url"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/otiai10/copy"
 )
-
-var DefaultDatabaseDir string
-
-func init() {
-	DefaultDatabaseDir = filepath.ToSlash(fmt.Sprintf("%s/.ide-config-sync", fsutil.HomeDir()))
-}
 
 func remoteURLToDir(remoteURL url.URL) string {
 	return fmt.Sprintf("%s%s", remoteURL.Host, remoteURL.Path)
@@ -43,6 +36,15 @@ func NewDatabase(directory string) (*DatabaseRepo, error) {
 func InitializeFromURL(url, directory string) (*DatabaseRepo, error) {
 	cmd := exec.Command("git", "clone", url, directory)
 	err := cmd.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	return NewDatabase(directory)
+}
+
+func InitializeFromPath(directory string) (*DatabaseRepo, error) {
+	_, err := git.PlainInit(directory, false)
 	if err != nil {
 		return nil, err
 	}
