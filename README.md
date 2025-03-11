@@ -29,7 +29,7 @@ This will save the IDE configurations to a remote repository to sync them betwee
 1. Run `ide-config-sync save` to crawl the current directory recursively and save all IDE settings inside the Database-Repository.
 
 ### Restore IDE settings
-1. Run `ide-config-sync restore` to restore all IDE settings from the Database-Repository to the current directory.
+1. Run `ide-config-sync restore` to search the current directory recursively and restore the IDE settings from the Database-Repository.
 
 ### Dry run / discover
 1. Run `ide-config-sync discover` to see which IDE settings would be saved or restored.
