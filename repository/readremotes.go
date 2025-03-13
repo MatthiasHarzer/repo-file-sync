@@ -1,13 +1,11 @@
 package repository
 
 import (
-	"net/url"
-
 	"github.com/go-git/go-git/v5"
 	"golang.org/x/exp/maps"
 )
 
-func ReadRemotes(repo string) ([]url.URL, error) {
+func ReadRemotes(repo string) ([]string, error) {
 	r, err := git.PlainOpen(repo)
 	if err != nil {
 		return nil, err
@@ -18,14 +16,10 @@ func ReadRemotes(repo string) ([]url.URL, error) {
 		return nil, err
 	}
 
-	remoteURLs := make(map[url.URL]bool)
+	remoteURLs := make(map[string]bool)
 	for _, remote := range remotes {
 		for _, urlStr := range remote.Config().URLs {
-			asURL, err := url.Parse(urlStr)
-			if err != nil {
-				return nil, err
-			}
-			remoteURLs[*asURL] = true
+			remoteURLs[urlStr] = true
 		}
 	}
 

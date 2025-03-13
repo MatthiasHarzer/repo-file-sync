@@ -5,16 +5,24 @@ import (
 	"ide-config-sync/fsutil"
 	"ide-config-sync/ide"
 	"ide-config-sync/repository"
-	"net/url"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/otiai10/copy"
 )
 
-func remoteURLToDir(remoteURL url.URL) string {
-	return fmt.Sprintf("%s%s", remoteURL.Host, remoteURL.Path)
+func remoteURLToDir(remoteURL string) string {
+	invalidChars := regexp.MustCompile(`[:<>"\\|?*]+`)
+
+	remoteURL = strings.TrimPrefix(remoteURL, "https://")
+	remoteURL = strings.TrimPrefix(remoteURL, "http://")
+	sanitized := invalidChars.ReplaceAllString(remoteURL, "_")
+	sanitized = strings.ReplaceAll(sanitized, "__", "_")
+	sanitized = strings.Trim(sanitized, "/")
+
+	return sanitized
 }
 
 type DatabaseRepo struct {
@@ -52,7 +60,7 @@ func InitializeFromPath(directory string) (*DatabaseRepo, error) {
 	return NewDatabase(directory)
 }
 
-func (d *DatabaseRepo) writeRemote(remote url.URL, repo, localFolderPath string) error {
+func (d *DatabaseRepo) writeRemote(remote string, repo, localFolderPath string) error {
 	remoteAsPath := remoteURLToDir(remote)
 	configFolderPath := fmt.Sprintf("%s/%s", remoteAsPath, localFolderPath)
 	dbFolderPath := fmt.Sprintf("%s/%s/%s", d.Directory, remoteAsPath, localFolderPath)
@@ -92,7 +100,7 @@ func (d *DatabaseRepo) Write(repo, relativeConfigPath string) error {
 	return nil
 }
 
-func (d *DatabaseRepo) readRemote(remote url.URL) ([]ide.Config, error) {
+func (d *DatabaseRepo) readRemote(remote string) ([]ide.Config, error) {
 	remoteAsPath := remoteURLToDir(remote)
 	dbDir := fmt.Sprintf("%s/%s", d.Directory, remoteAsPath)
 

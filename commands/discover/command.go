@@ -3,6 +3,7 @@ package discover
 import (
 	"ide-config-sync/commands"
 	"ide-config-sync/ide"
+	"ide-config-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -25,7 +26,20 @@ var Command = &cobra.Command{
 		}
 
 		for repo := range repos {
-			println(color.GreenString("+"), "Discovered ", color.GreenString(repo))
+			remotes, err := repository.ReadRemotes(repo)
+			if err != nil {
+				panic(err)
+			}
+
+			remotesString := ""
+			for i, remote := range remotes {
+				if i > 0 {
+					remotesString += ", "
+				}
+				remotesString += color.YellowString(remote)
+			}
+
+			println(color.GreenString("+"), "Discovered", color.GreenString(repo), "("+remotesString+")")
 
 			ideConfigs := ide.ReadIDEFolderPaths(repo)
 
