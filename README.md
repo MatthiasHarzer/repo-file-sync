@@ -7,13 +7,13 @@ A tool to save and restore IDE settings (`.vscode`, `.idea`) inside Git reposito
 ## Setup 
 Download the [latest release](https://github.com/MatthiasHarzer/ide-config-sync/releases) and add the executable to your `PATH`.
 
-## Local only
+### Local only
 This will save the IDE configurations local only, without the need of a remote repository.
 1. Run `ide-config-sync init`.
 2. Optionally provide a directory to store the Database-Repository, however the default one is recommended.
 3. Select `y` when asked to set up local only
 
-## Remote repository
+### Remote repository
 This will save the IDE configurations to a remote repository to sync them between multiple devices.
 1. Run `ide-config-sync init` and provide a directory to store the Database-Repository.
 2. Optionally provide a directory to store the Database-Repository, however the default one is recommended.
