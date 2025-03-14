@@ -28,18 +28,11 @@ var Command = &cobra.Command{
 		for repo := range repos {
 			remotes, err := repository.ReadRemotes(repo)
 			if err != nil {
-				panic(err)
+				println(commands.FormatFailedToReadRemotes(repo, err))
+				continue
 			}
 
-			remotesString := ""
-			for i, remote := range remotes {
-				if i > 0 {
-					remotesString += ", "
-				}
-				remotesString += color.YellowString(remote)
-			}
-
-			println(color.GreenString("+"), "Discovered", color.GreenString(repo), "("+remotesString+")")
+			println(commands.FormatRepositoryDiscovered(repo, remotes))
 
 			ideConfigs := ide.ReadIDEFolderPaths(repo)
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"ide-config-sync/commands"
 	"ide-config-sync/ide"
+	"ide-config-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -28,7 +29,13 @@ var Command = &cobra.Command{
 		}
 
 		for repo := range repos {
-			println(color.GreenString("+"), "Discovered", color.GreenString(repo))
+			remotes, err := repository.ReadRemotes(repo)
+			if err != nil {
+				println(commands.FormatFailedToReadRemotes(repo, err))
+				continue
+			}
+
+			println(commands.FormatRepositoryDiscovered(repo, remotes))
 
 			ideFolders := ide.ReadIDEFolderPaths(repo)
 			for ideConfig := range ideFolders {

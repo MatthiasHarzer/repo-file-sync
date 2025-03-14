@@ -6,11 +6,13 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/go-git/go-git/v5"
 )
 
 func shouldSkipDir(path string, excludePatterns []string) bool {
 	for _, pattern := range excludePatterns {
-		matched, _ := regexp.MatchString(pattern, filepath.Base(path))
+		matched, _ := regexp.MatchString(pattern, path)
 		if matched {
 			return true
 		}
@@ -55,10 +57,10 @@ func findFolders(root string, includePatterns []string, excludePatterns []string
 					continue
 				}
 
-				if shouldSkipDir(fullPath, excludePatterns) {
+				if shouldSkipDir(filepath.ToSlash(fullPath), excludePatterns) {
 					continue
 				}
-				if shouldIncludeDir(fullPath, includePatterns) {
+				if shouldIncludeDir(filepath.ToSlash(fullPath), includePatterns) {
 					relPath, err := filepath.Rel(root, fullPath)
 					if err != nil {
 						continue
@@ -77,12 +79,12 @@ func findFolders(root string, includePatterns []string, excludePatterns []string
 }
 
 func ReadIDEFolderPaths(repo string) <-chan string {
-	return findFolders(repo, ideFolders, ignorePatterns)
+	return findFolders(repo, ideFolderPatterns, ignorePatterns)
 }
 
 func FindRepositories(base string, ignoredRepo string) <-chan string {
-	repoIgnorePatterns := append([]string{ignoredRepo}, ignorePatterns...)
-	repositories := findFolders(base, []string{".git$"}, repoIgnorePatterns)
+	repoIgnorePatterns := append([]string{regexp.QuoteMeta(ignoredRepo)}, ignorePatterns...)
+	repositories := findFolders(base, []string{"^\\.git$"}, repoIgnorePatterns)
 
 	repos := make(chan string)
 
@@ -99,6 +101,11 @@ func FindRepositories(base string, ignoredRepo string) <-chan string {
 				if strings.HasPrefix(repoPath, folder) {
 					continue
 				}
+			}
+
+			_, err := git.PlainOpen(repoPath)
+			if err != nil {
+				continue
 			}
 
 			known[repoPath] = true
