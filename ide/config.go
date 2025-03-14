@@ -1,14 +1,14 @@
 package ide
 
-var ideFolders = []string{
+var ideFolderPatterns = []string{
 	".idea",
-	".vscode",
+	"\\.vscode",
 }
 
 var ignorePatterns = []string{
 	"node_modules",
 	"venv",
-	".venv",
+	"\\.venv",
 }
 
 type Config struct {
