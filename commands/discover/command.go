@@ -28,7 +28,8 @@ var Command = &cobra.Command{
 		for repo := range repos {
 			remotes, err := repository.ReadRemotes(repo)
 			if err != nil {
-				panic(err)
+				println(color.RedString("- Failed to read remotes for"), color.RedString(repo), ":", color.RedString(err.Error()))
+				continue
 			}
 
 			remotesString := ""

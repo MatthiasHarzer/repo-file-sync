@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/go-git/go-git/v5"
 )
 
 func shouldSkipDir(path string, excludePatterns []string) bool {
@@ -81,8 +83,8 @@ func ReadIDEFolderPaths(repo string) <-chan string {
 }
 
 func FindRepositories(base string, ignoredRepo string) <-chan string {
-	repoIgnorePatterns := append([]string{ignoredRepo}, ignorePatterns...)
-	repositories := findFolders(base, []string{".git$"}, repoIgnorePatterns)
+	repoIgnorePatterns := append([]string{regexp.QuoteMeta(ignoredRepo)}, ignorePatterns...)
+	repositories := findFolders(base, []string{"^.git$"}, repoIgnorePatterns)
 
 	repos := make(chan string)
 
@@ -99,6 +101,11 @@ func FindRepositories(base string, ignoredRepo string) <-chan string {
 				if strings.HasPrefix(repoPath, folder) {
 					continue
 				}
+			}
+
+			_, err := git.PlainOpen(repoPath)
+			if err != nil {
+				continue
 			}
 
 			known[repoPath] = true
