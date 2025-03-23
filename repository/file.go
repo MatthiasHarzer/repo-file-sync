@@ -1,5 +1,7 @@
 package repository
 
+import "ide-config-sync/util/fsutil"
+
 type FileType string
 
 const (
@@ -15,4 +17,12 @@ type File struct {
 
 func (f *File) IsFile() bool {
 	return f.Type == FileTypeFile
+}
+
+func (f *File) ListFiles() ([]string, error) {
+	if f.IsFile() {
+		return []string{f.AbsolutePath}, nil
+	}
+
+	return fsutil.ListFiles(f.AbsolutePath)
 }

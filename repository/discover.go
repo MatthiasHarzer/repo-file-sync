@@ -122,7 +122,7 @@ func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 	return repos
 }
 
-func DiscoverRepositoryFiles(repo string, config Options) <-chan File {
+func DiscoverRepositoryFiles(repo string, config DiscoveryOptions) <-chan File {
 	files := make(chan File)
 	knownFiles := make(map[string]bool)
 

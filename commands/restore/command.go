@@ -21,8 +21,8 @@ func init() {
 
 var Command = &cobra.Command{
 	Use:   "restore",
-	Short: "Restore IDE configs from the database",
-	Long:  "Restore IDE configs from the database",
+	Short: "Restore repository files from the database",
+	Long:  "Restore repository files from the database",
 	RunE: func(c *cobra.Command, args []string) error {
 		db, repos, _, err := commands.Setup(baseDir)
 		if err != nil {
@@ -30,7 +30,7 @@ var Command = &cobra.Command{
 		}
 
 		for repo := range repos {
-			println(color.GreenString("+"), "Discovered", color.GreenString(repo))
+			println(commands.RepositoryDiscovered(repo))
 
 			files, err := db.ReadRepoFiles(repo)
 			if err != nil {

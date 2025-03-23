@@ -143,7 +143,7 @@ func (d *Repo) WriteRepoFile(repo string, file repository.File) error {
 	return nil
 }
 
-func (d *Repo) WriteRepoOptions(repo string, options repository.Options) error {
+func (d *Repo) WriteRepoDiscoveryOptions(repo string, options repository.DiscoveryOptions) error {
 	remotes, err := repository.ReadRemotes(repo)
 	if err != nil {
 		return err
@@ -182,10 +182,10 @@ func (d *Repo) ReadRepoFiles(repo string) ([]repository.File, error) {
 	return files, nil
 }
 
-func (d *Repo) ReadRepoOptions(repo string) (repository.Options, error) {
+func (d *Repo) ReadRepoDiscoveryOptions(repo string) (repository.DiscoveryOptions, error) {
 	remotes, err := repository.ReadRemotes(repo)
 	if err != nil {
-		return repository.Options{}, err
+		return repository.DiscoveryOptions{}, err
 	}
 
 	var includes []string
@@ -198,13 +198,13 @@ func (d *Repo) ReadRepoOptions(repo string) (repository.Options, error) {
 
 		lines, err := fsutil.ReadFileLines(includesPath)
 		if err != nil {
-			return repository.Options{}, err
+			return repository.DiscoveryOptions{}, err
 		}
 
 		includes = append(includes, lines...)
 	}
 
-	return repository.NewOptions(includes), nil
+	return repository.NewDiscoveryOptions(includes), nil
 }
 
 func (d *Repo) readGlobalIncludes() ([]string, error) {
@@ -232,12 +232,12 @@ func (d *Repo) globalOptionsExists() bool {
 	return includesExists && excludesExists
 }
 
-func (d *Repo) ReadGlobalOptions() (repository.Options, error) {
+func (d *Repo) ReadGlobalDiscoveryOptions() (repository.DiscoveryOptions, error) {
 	if !d.globalOptionsExists() {
-		options := repository.DefaultGlobalOptions()
-		err := d.WriteGlobalOptions(options)
+		options := repository.DefaultGlobalDiscoveryOptions()
+		err := d.WriteGlobalDiscoveryOptions(options)
 		if err != nil {
-			return repository.Options{}, err
+			return repository.DiscoveryOptions{}, err
 		}
 		return options, nil
 	}
@@ -245,17 +245,17 @@ func (d *Repo) ReadGlobalOptions() (repository.Options, error) {
 	excludeLines, exclErr := d.readGlobalExcludes()
 
 	if inclErr != nil || exclErr != nil {
-		return repository.Options{}, fmt.Errorf("failed to read global includes / excludes")
+		return repository.DiscoveryOptions{}, fmt.Errorf("failed to read global includes / excludes")
 	}
 
-	options := repository.DefaultGlobalOptions()
+	options := repository.DefaultGlobalDiscoveryOptions()
 	options.IncludePatterns = set.FromSlice(includeLines)
 	options.ExcludePatterns = set.FromSlice(excludeLines)
 
 	return options, nil
 }
 
-func (d *Repo) WriteGlobalOptions(config repository.Options) error {
+func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) error {
 	err := fsutil.WriteFileLines(d.globalIncludesFile(), config.IncludePatterns.Slice())
 	if err != nil {
 		return err

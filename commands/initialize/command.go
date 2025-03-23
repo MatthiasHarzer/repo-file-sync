@@ -3,12 +3,13 @@ package initialize
 import (
 	"bufio"
 	"fmt"
+	"net/url"
+	"os"
+
 	"ide-config-sync/config"
 	"ide-config-sync/database"
 	"ide-config-sync/util/commandutil"
 	"ide-config-sync/util/fsutil"
-	"net/url"
-	"os"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -61,8 +62,8 @@ func readDatabaseRepositoryURL(c *config.Config) string {
 
 var Command = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize IDE config sync",
-	Long:  "Initialize IDE config sync",
+	Short: "Initialize external file sync",
+	Long:  "Initialize external file sync",
 	Run: func(c *cobra.Command, args []string) {
 		exists, err := fsutil.Exists(config.StoragePath)
 		if err != nil {

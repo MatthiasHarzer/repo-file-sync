@@ -42,7 +42,7 @@ var Command = &cobra.Command{
 			return nil
 		}
 
-		options, err := db.ReadRepoOptions(baseDir)
+		options, err := db.ReadRepoDiscoveryOptions(baseDir)
 		if err != nil {
 			panic(err)
 		}
@@ -52,7 +52,7 @@ var Command = &cobra.Command{
 			println(color.GreenString("+"), "Added include pattern", color.GreenString(arg))
 		}
 
-		err = db.WriteRepoOptions(baseDir, options)
+		err = db.WriteRepoDiscoveryOptions(baseDir, options)
 		if err != nil {
 			panic(err)
 		}

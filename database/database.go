@@ -4,11 +4,11 @@ import "ide-config-sync/repository"
 
 type Database interface {
 	WriteRepoFile(repo string, file repository.File) error
-	WriteRepoOptions(repo string, repoConfiguration repository.Options) error
+	WriteRepoDiscoveryOptions(repo string, repoConfiguration repository.DiscoveryOptions) error
 	ReadRepoFiles(repo string) ([]repository.File, error)
-	ReadRepoOptions(repo string) (repository.Options, error)
-	WriteGlobalOptions(globalConfig repository.Options) error
-	ReadGlobalOptions() (repository.Options, error)
+	ReadRepoDiscoveryOptions(repo string) (repository.DiscoveryOptions, error)
+	WriteGlobalDiscoveryOptions(globalConfig repository.DiscoveryOptions) error
+	ReadGlobalDiscoveryOptions() (repository.DiscoveryOptions, error)
 	Push() error
 	Pull() error
 }
