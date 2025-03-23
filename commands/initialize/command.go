@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"ide-config-sync/config"
-	"ide-config-sync/persistance"
+	"ide-config-sync/database"
 	"ide-config-sync/util/commandutil"
 	"ide-config-sync/util/fsutil"
 	"net/url"
@@ -110,9 +110,9 @@ var Command = &cobra.Command{
 		}
 
 		if cfg.LocalOnly {
-			_, err = persistance.InitializeFromPath(cfg.DatabasePath)
+			_, err = database.InitializeRepoDatabaseFromPath(cfg.DatabasePath)
 		} else {
-			_, err = persistance.InitializeFromURL(cfg.DatabaseRepoURL, cfg.DatabasePath)
+			_, err = database.InitializeRepoDatabaseFromURL(cfg.DatabaseRepoURL, cfg.DatabasePath)
 		}
 		if err != nil {
 			color.Red("failed to create database repository: %s", err)

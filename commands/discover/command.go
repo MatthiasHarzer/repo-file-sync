@@ -17,8 +17,8 @@ func init() {
 
 var Command = &cobra.Command{
 	Use:   "discover",
-	Short: "Discover IDE config files",
-	Long:  "Discover IDE config files",
+	Short: "DiscoverRepositoryFiles IDE config files",
+	Long:  "DiscoverRepositoryFiles IDE config files",
 	RunE: func(c *cobra.Command, args []string) error {
 		_, repos, _, err := commands.Setup(baseDir)
 		if err != nil {

@@ -1,9 +1,11 @@
 package save
 
 import (
-	"fmt"
+	"path/filepath"
+
 	"ide-config-sync/commands"
-	"ide-config-sync/ide"
+	"ide-config-sync/repository"
+	"ide-config-sync/util/fsutil"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -27,36 +29,52 @@ var Command = &cobra.Command{
 			panic(err)
 		}
 
-		for repo := range repos {
-			println(color.GreenString("+"), "Discovered", color.GreenString(repo))
+		_ = cfg
 
-			ideFolders := ide.ReadIDEFolderPaths(repo)
-			for ideConfig := range ideFolders {
-				err := db.WriteRepoFile(repo, ideConfig)
-				if err != nil {
-					color.Red("Failed to write %s to database: %s", ideConfig, err)
-					continue
-				}
-
-				println(color.BlueString("  +"), "IDE config saved:", color.BlueString(ideConfig))
-			}
-		}
-
-		println()
-
-		if cfg.LocalOnly {
-			return nil
-		}
-
-		println("Pushing changes to", color.GreenString(cfg.DatabaseRepoURL))
-		err = db.Push()
+		globalRepoOptions, err := db.ReadGlobalOptions()
 		if err != nil {
-			fmt.Printf("unable to push changes: %s\n", err)
 			panic(err)
 		}
 
-		color.RGB(200, 200, 200).Print("Pushed changes")
+		for repo := range repos {
+			println(color.GreenString("+"), "Discovered", color.GreenString(repo))
 
-		return nil
+			localRepoOptions, err := db.ReadRepoOptions(repo)
+			if err != nil {
+				panic(err)
+			}
+
+			mergedOptions := globalRepoOptions.Merge(localRepoOptions)
+
+			files := repository.DiscoverRepositoryFiles(repo, mergedOptions)
+
+			for file := range files {
+				err := db.WriteRepoFile(repo, file)
+				if err != nil {
+					color.Red("Failed to write %s to database: %s", file, err)
+					continue
+				}
+
+				if file.IsFile() {
+					println(color.BlueString("  +"), "File added:", color.BlueString(file.PathFromRepoRoot))
+					continue
+				}
+				addedFiles, err := fsutil.ListFiles(file.AbsolutePath)
+				if err != nil {
+					color.Red("Failed to list files: %s", err)
+					continue
+				}
+
+				for _, addedFile := range addedFiles {
+					relPath, err := filepath.Rel(repo, addedFile)
+					if err != nil {
+						color.Red("Failed to get relative path: %s", err)
+						continue
+					}
+					println(color.BlueString("  +"), "File added:", color.BlueString(relPath))
+				}
+			}
+		}
+		return commands.Push(cfg, db)
 	},
 }

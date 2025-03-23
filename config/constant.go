@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
-	"ide-config-sync/util/fsutil"
 	"path/filepath"
+
+	"ide-config-sync/util/fsutil"
 )
 
 var (

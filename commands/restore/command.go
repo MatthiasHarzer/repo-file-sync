@@ -1,10 +1,13 @@
 package restore
 
 import (
+	"path/filepath"
+
 	"ide-config-sync/commands"
-	"ide-config-sync/ide"
+	"ide-config-sync/util/fsutil"
 
 	"github.com/fatih/color"
+	"github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 )
 
@@ -34,14 +37,28 @@ var Command = &cobra.Command{
 				panic(err)
 			}
 
-			for _, config := range files {
-				err = ide.WriteIDEFolder(repo, config)
+			for _, file := range files {
+				err := copy.Copy(file.AbsolutePath, repo)
 				if err != nil {
-					color.Red("Failed to restore %s: %s", config.RelativePath, err)
+					color.Red("Failed to restore files: %s", err)
 					continue
 				}
 
-				println(color.BlueString("  +"), "IDE config restored:", color.BlueString(config.RelativePath))
+				restoredFiles, err := fsutil.ListFiles(file.AbsolutePath)
+				if err != nil {
+					color.Red("Failed to list files: %s", err)
+					continue
+				}
+
+				for _, restoredFile := range restoredFiles {
+					relPath, err := filepath.Rel(file.AbsolutePath, restoredFile)
+					if err != nil {
+						color.Red("Failed to get relative path: %s", err)
+						continue
+					}
+
+					println(color.BlueString("  +"), "File restored:", color.BlueString(relPath))
+				}
 			}
 		}
 

@@ -1,8 +1,9 @@
 package add
 
 import (
-	"ide-config-sync/commands"
 	"os"
+
+	"ide-config-sync/commands"
 
 	"github.com/fatih/color"
 	"github.com/go-git/go-git/v5"
@@ -41,19 +42,23 @@ var Command = &cobra.Command{
 			return nil
 		}
 
-		currentIncludes, err := db.ReadRepoIncludes(baseDir)
+		options, err := db.ReadRepoOptions(baseDir)
 		if err != nil {
 			panic(err)
 		}
 
-		newIncludes := append(currentIncludes, args...)
+		for _, arg := range args {
+			options.IncludePatterns.Add(arg)
+			println(color.GreenString("+"), "Added include pattern", color.GreenString(arg))
+		}
 
-		err = db.WriteRepoIncludes(baseDir, newIncludes)
+		err = db.WriteRepoOptions(baseDir, options)
 		if err != nil {
 			panic(err)
 		}
 
 		if !cfg.LocalOnly {
+			println()
 			err := db.Push()
 			if err != nil {
 				panic(err)

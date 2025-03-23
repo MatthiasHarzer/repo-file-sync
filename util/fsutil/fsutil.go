@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func Exists(path string) (bool, error) {
@@ -58,13 +60,19 @@ func ReadFileLines(path string) ([]string, error) {
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		lines = append(lines, strings.TrimSpace(scanner.Text()))
 	}
 
 	return lines, scanner.Err()
 }
 
 func WriteFileLines(path string, lines []string) error {
+	dir := filepath.Dir(path)
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return err
+	}
+
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -76,4 +84,21 @@ func WriteFileLines(path string, lines []string) error {
 	}
 
 	return nil
+}
+
+func ListFiles(path string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }
