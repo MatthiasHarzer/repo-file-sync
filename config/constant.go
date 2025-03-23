@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"ide-config-sync/fsutil"
+	"ide-config-sync/util/fsutil"
 	"path/filepath"
 )
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ide-config-sync/commands/add"
 	"ide-config-sync/commands/discover"
 	"ide-config-sync/commands/initialize"
 	"ide-config-sync/commands/restore"
@@ -10,6 +11,7 @@ import (
 )
 
 func init() {
+	command.AddCommand(add.Command)
 	command.AddCommand(save.Command)
 	command.AddCommand(restore.Command)
 	command.AddCommand(initialize.Command)

@@ -29,12 +29,12 @@ var Command = &cobra.Command{
 		for repo := range repos {
 			println(color.GreenString("+"), "Discovered", color.GreenString(repo))
 
-			knownConfigs, err := db.Read(repo)
+			files, err := db.ReadRepoFiles(repo)
 			if err != nil {
 				panic(err)
 			}
 
-			for _, config := range knownConfigs {
+			for _, config := range files {
 				err = ide.WriteIDEFolder(repo, config)
 				if err != nil {
 					color.Red("Failed to restore %s: %s", config.RelativePath, err)

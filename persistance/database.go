@@ -2,9 +2,9 @@ package persistance
 
 import (
 	"fmt"
-	"ide-config-sync/fsutil"
-	"ide-config-sync/ide"
 	"ide-config-sync/repository"
+	"ide-config-sync/util/fsutil"
+	"ide-config-sync/util/sliceutil"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -60,39 +60,49 @@ func InitializeFromPath(directory string) (*DatabaseRepo, error) {
 	return NewDatabase(directory)
 }
 
-func (d *DatabaseRepo) writeRemote(remote string, repo, localFolderPath string) error {
+func (d *DatabaseRepo) remoteFilesDir(remote string) string {
 	remoteAsPath := remoteURLToDir(remote)
-	configFolderPath := fmt.Sprintf("%s/%s", remoteAsPath, localFolderPath)
-	dbFolderPath := fmt.Sprintf("%s/%s/%s", d.Directory, remoteAsPath, localFolderPath)
-	localFolderAbsPath := fmt.Sprintf("%s/%s", repo, localFolderPath)
+	return fmt.Sprintf("%s/%s/files", d.Directory, remoteAsPath)
+}
 
-	err := copy.Copy(localFolderAbsPath, dbFolderPath)
+func (d *DatabaseRepo) remoteIncludesFile(remote string) string {
+	remoteAsPath := remoteURLToDir(remote)
+	return fmt.Sprintf("%s/%s/includes", d.Directory, remoteAsPath)
+}
+
+func (d *DatabaseRepo) writeRemoteRepoFile(remote string, repo, localFileRelPath string) error {
+	relativePath := fmt.Sprintf("%s/%s", remoteURLToDir(remote), localFileRelPath)
+
+	dbFilePath := fmt.Sprintf("%s/%s", d.remoteFilesDir(remote), relativePath)
+	localFileAbsPath := fmt.Sprintf("%s/%s", repo, localFileRelPath)
+
+	err := copy.Copy(localFileAbsPath, dbFilePath)
 	if err != nil {
-		return fmt.Errorf("failed to copy %s to %s: %s", localFolderAbsPath, dbFolderPath, err)
+		return fmt.Errorf("failed to copy %s to %s: %s", localFileAbsPath, dbFilePath, err)
 	}
 
-	cmd := exec.Command("git", "add", configFolderPath, "--force")
+	cmd := exec.Command("git", "add", relativePath, "--force")
 	cmd.Dir = d.Directory
 	err = cmd.Run()
 	if err != nil {
-		return fmt.Errorf("failed to add %s to git: %s", configFolderPath, err)
+		return fmt.Errorf("failed to add %s to git: %s", relativePath, err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update '%s' with '%s'", remoteAsPath, localFolderPath))
+	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update '%s' with '%s'", remote, localFileRelPath))
 	cmd.Dir = d.Directory
 	_ = cmd.Run()
 
 	return nil
 }
 
-func (d *DatabaseRepo) Write(repo, relativeConfigPath string) error {
+func (d *DatabaseRepo) WriteRepoFile(repo, relativeFilePath string) error {
 	remotes, err := repository.ReadRemotes(repo)
 	if err != nil {
 		return err
 	}
 
 	for _, remote := range remotes {
-		err := d.writeRemote(remote, repo, relativeConfigPath)
+		err := d.writeRemoteRepoFile(remote, repo, relativeFilePath)
 		if err != nil {
 			return err
 		}
@@ -100,43 +110,76 @@ func (d *DatabaseRepo) Write(repo, relativeConfigPath string) error {
 	return nil
 }
 
-func (d *DatabaseRepo) readRemote(remote string) ([]ide.Config, error) {
-	remoteAsPath := remoteURLToDir(remote)
-	dbDir := fmt.Sprintf("%s/%s", d.Directory, remoteAsPath)
-
-	exists, _ := fsutil.Exists(dbDir)
-	if !exists {
-		return nil, nil
+func (d *DatabaseRepo) WriteRepoIncludes(repo string, includes []string) error {
+	remotes, err := repository.ReadRemotes(repo)
+	if err != nil {
+		return err
 	}
 
-	dirs := ide.ReadIDEFolderPaths(dbDir)
+	for _, remote := range remotes {
+		includesFile := d.remoteIncludesFile(remote)
 
-	ideConfigs := make([]ide.Config, 0)
-	for dir := range dirs {
-		ideConfigs = append(ideConfigs, ide.Config{
-			FsPath:       fmt.Sprintf("%s/%s", dbDir, dir),
-			RelativePath: strings.TrimPrefix(dir, "/"),
-		})
+		err := fsutil.WriteFileLines(includesFile, includes)
+		if err != nil {
+			return err
+		}
+
+		cmd := exec.Command("git", "add", includesFile, "--force")
+		cmd.Dir = d.Directory
+		err = cmd.Run()
+		if err != nil {
+			return fmt.Errorf("failed to add %s to git: %s", includesFile, err)
+		}
+
+		cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update includes for '%s'", remote))
+		cmd.Dir = d.Directory
+		_ = cmd.Run()
 	}
 
-	return ideConfigs, nil
+	return nil
 }
 
-func (d *DatabaseRepo) Read(repo string) ([]ide.Config, error) {
+func (d *DatabaseRepo) ReadRepoFiles(repo string) (files []string, err error) {
 	remotes, err := repository.ReadRemotes(repo)
 	if err != nil {
 		return nil, err
 	}
 
-	var ideConfigs []ide.Config
 	for _, remote := range remotes {
-		configs, err := d.readRemote(remote)
+		filesPath := d.remoteFilesDir(remote)
+		exists, _ := fsutil.Exists(filesPath)
+		if !exists {
+			continue
+		}
+
+		files = append(files, filesPath)
+	}
+
+	return files, nil
+}
+
+func (d *DatabaseRepo) ReadRepoIncludes(repo string) (includes []string, err error) {
+	remotes, err := repository.ReadRemotes(repo)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, remote := range remotes {
+		includesPath := d.remoteIncludesFile(remote)
+		exists, _ := fsutil.Exists(includesPath)
+		if !exists {
+			continue
+		}
+
+		lines, err := fsutil.ReadFileLines(includesPath)
 		if err != nil {
 			return nil, err
 		}
-		ideConfigs = append(ideConfigs, configs...)
+
+		includes = append(includes, lines...)
 	}
-	return ideConfigs, nil
+
+	return sliceutil.Unique(includes), nil
 }
 
 func (d *DatabaseRepo) Push() error {

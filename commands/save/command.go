@@ -32,7 +32,7 @@ var Command = &cobra.Command{
 
 			ideFolders := ide.ReadIDEFolderPaths(repo)
 			for ideConfig := range ideFolders {
-				err := db.Write(repo, ideConfig)
+				err := db.WriteRepoFile(repo, ideConfig)
 				if err != nil {
 					color.Red("Failed to write %s to database: %s", ideConfig, err)
 					continue

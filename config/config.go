@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"ide-config-sync/fsutil"
+	"ide-config-sync/util/fsutil"
 	"os"
 )
 

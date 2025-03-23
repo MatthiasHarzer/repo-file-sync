@@ -4,40 +4,18 @@ import (
 	"bufio"
 	"fmt"
 	"ide-config-sync/config"
-	"ide-config-sync/fsutil"
 	"ide-config-sync/persistance"
+	"ide-config-sync/util/commandutil"
+	"ide-config-sync/util/fsutil"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 func readUseLocalOnly() (bool, error) {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("Do you want to use local only mode? [y/N]: ")
-	for {
-		scanned := scanner.Scan()
-		if !scanned {
-			return false, fmt.Errorf("failed to read input")
-		}
-
-		text := scanner.Text()
-		if text == "" {
-			return false, nil
-		}
-
-		switch strings.ToLower(text) {
-		case "y", "yes", "true", "1":
-			return true, nil
-
-		case "n", "no", "false", "0":
-			return false, nil
-		default:
-			color.Red("Invalid option '%s'", text)
-		}
-	}
+	return commandutil.BooleanPrompt("Do you want to use local only mode?", false)
 }
 
 func readDatabasePath() string {
