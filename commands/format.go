@@ -1,8 +1,19 @@
 package commands
 
-import "github.com/fatih/color"
+import (
+	"path/filepath"
 
-func FormatRepositoryDiscovered(repo string, remotes []string) string {
+	"repo-file-sync/repository"
+
+	"github.com/fatih/color"
+)
+
+func RepositoryDiscovered(repo string) string {
+	remotes, err := repository.ReadRemotes(repo)
+	if err != nil {
+		return color.RedString("- Failed to read remotes for") + color.RedString(repo) + ":" + color.RedString(err.Error())
+	}
+
 	remotesString := ""
 	for i, remote := range remotes {
 		if i > 0 {
@@ -10,13 +21,25 @@ func FormatRepositoryDiscovered(repo string, remotes []string) string {
 		}
 		remotesString += color.YellowString(remote)
 	}
-	if remotesString == "" {
-		remotesString = color.YellowString("no remotes, ignoring")
-	}
-
 	return color.GreenString("+") + " Discovered " + color.GreenString(repo) + " (" + remotesString + ")"
 }
 
-func FormatFailedToReadRemotes(repo string, err error) string {
-	return color.RedString("- Failed to read remotes for ") + color.RedString(repo) + ": " + color.RedString(err.Error())
+func FileProcessed(repo string, file repository.File, messagePrefix string) string {
+	files, err := file.ListFiles()
+	if err != nil {
+		return color.RedString("- Failed to list files")
+	}
+
+	var output string
+	for _, addedFile := range files {
+		relPath, err := filepath.Rel(repo, addedFile)
+		if err != nil {
+			return color.RedString("- Failed to get relative path: %s", err)
+		}
+		if relPath == "" {
+			continue
+		}
+		output += color.BlueString("  + ") + messagePrefix + ": " + color.BlueString(relPath) + "\n"
+	}
+	return output
 }

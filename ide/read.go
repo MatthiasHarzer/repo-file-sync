@@ -12,7 +12,7 @@ import (
 
 func shouldSkipDir(path string, excludePatterns []string) bool {
 	for _, pattern := range excludePatterns {
-		matched, _ := regexp.MatchString(pattern, path)
+		matched, _ := regexp.MatchString(pattern, filepath.Base(path))
 		if matched {
 			return true
 		}
@@ -57,10 +57,10 @@ func findFolders(root string, includePatterns []string, excludePatterns []string
 					continue
 				}
 
-				if shouldSkipDir(filepath.ToSlash(fullPath), excludePatterns) {
+				if shouldSkipDir(fullPath, excludePatterns) {
 					continue
 				}
-				if shouldIncludeDir(filepath.ToSlash(fullPath), includePatterns) {
+				if shouldIncludeDir(fullPath, includePatterns) {
 					relPath, err := filepath.Rel(root, fullPath)
 					if err != nil {
 						continue
@@ -79,12 +79,12 @@ func findFolders(root string, includePatterns []string, excludePatterns []string
 }
 
 func ReadIDEFolderPaths(repo string) <-chan string {
-	return findFolders(repo, ideFolderPatterns, ignorePatterns)
+	return findFolders(repo, ideFolders, ignorePatterns)
 }
 
 func FindRepositories(base string, ignoredRepo string) <-chan string {
 	repoIgnorePatterns := append([]string{regexp.QuoteMeta(ignoredRepo)}, ignorePatterns...)
-	repositories := findFolders(base, []string{"^\\.git$"}, repoIgnorePatterns)
+	repositories := findFolders(base, []string{"^.git$"}, repoIgnorePatterns)
 
 	repos := make(chan string)
 

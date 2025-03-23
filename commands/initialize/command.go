@@ -3,41 +3,20 @@ package initialize
 import (
 	"bufio"
 	"fmt"
-	"ide-config-sync/config"
-	"ide-config-sync/fsutil"
-	"ide-config-sync/persistance"
 	"net/url"
 	"os"
-	"strings"
+
+	"repo-file-sync/config"
+	"repo-file-sync/database"
+	"repo-file-sync/util/commandutil"
+	"repo-file-sync/util/fsutil"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 func readUseLocalOnly() (bool, error) {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("Do you want to use local only mode? [y/N]: ")
-	for {
-		scanned := scanner.Scan()
-		if !scanned {
-			return false, fmt.Errorf("failed to read input")
-		}
-
-		text := scanner.Text()
-		if text == "" {
-			return false, nil
-		}
-
-		switch strings.ToLower(text) {
-		case "y", "yes", "true", "1":
-			return true, nil
-
-		case "n", "no", "false", "0":
-			return false, nil
-		default:
-			color.Red("Invalid option '%s'", text)
-		}
-	}
+	return commandutil.BooleanPrompt("Do you want to use local only mode?", false)
 }
 
 func readDatabasePath() string {
@@ -83,8 +62,8 @@ func readDatabaseRepositoryURL(c *config.Config) string {
 
 var Command = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize IDE config sync",
-	Long:  "Initialize IDE config sync",
+	Short: "Initialize external file sync",
+	Long:  "Initialize external file sync",
 	Run: func(c *cobra.Command, args []string) {
 		exists, err := fsutil.Exists(config.StoragePath)
 		if err != nil {
@@ -132,9 +111,9 @@ var Command = &cobra.Command{
 		}
 
 		if cfg.LocalOnly {
-			_, err = persistance.InitializeFromPath(cfg.DatabasePath)
+			_, err = database.InitializeRepoDatabaseFromPath(cfg.DatabasePath)
 		} else {
-			_, err = persistance.InitializeFromURL(cfg.DatabaseRepoURL, cfg.DatabasePath)
+			_, err = database.InitializeRepoDatabaseFromURL(cfg.DatabaseRepoURL, cfg.DatabasePath)
 		}
 		if err != nil {
 			color.Red("failed to create database repository: %s", err)

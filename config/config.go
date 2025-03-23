@@ -3,8 +3,9 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"ide-config-sync/fsutil"
 	"os"
+
+	"repo-file-sync/util/fsutil"
 )
 
 type Config struct {

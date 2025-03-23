@@ -1,10 +1,8 @@
 package save
 
 import (
-	"fmt"
-	"ide-config-sync/commands"
-	"ide-config-sync/ide"
-	"ide-config-sync/repository"
+	"repo-file-sync/commands"
+	"repo-file-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -20,50 +18,43 @@ func init() {
 
 var Command = &cobra.Command{
 	Use:   "save",
-	Short: "Save IDE configurations to the database",
-	Long:  "Save IDE configurations to the database",
+	Short: "Save repository files to the database",
+	Long:  "Save repository files to the database",
 	RunE: func(c *cobra.Command, args []string) error {
 		db, repos, cfg, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}
 
-		for repo := range repos {
-			remotes, err := repository.ReadRemotes(repo)
-			if err != nil {
-				println(commands.FormatFailedToReadRemotes(repo, err))
-				continue
-			}
+		_ = cfg
 
-			println(commands.FormatRepositoryDiscovered(repo, remotes))
-
-			ideFolders := ide.ReadIDEFolderPaths(repo)
-			for ideConfig := range ideFolders {
-				err := db.Write(repo, ideConfig)
-				if err != nil {
-					color.Red("Failed to write %s to database: %s", ideConfig, err)
-					continue
-				}
-
-				println(color.BlueString("  +"), "IDE config saved:", color.BlueString(ideConfig))
-			}
-		}
-
-		println()
-
-		if cfg.LocalOnly {
-			return nil
-		}
-
-		println("Pushing changes to", color.GreenString(cfg.DatabaseRepoURL))
-		err = db.Push()
+		globalDiscoveryOptions, err := db.ReadGlobalDiscoveryOptions()
 		if err != nil {
-			fmt.Printf("unable to push changes: %s\n", err)
 			panic(err)
 		}
 
-		color.RGB(200, 200, 200).Print("Pushed changes")
+		for repo := range repos {
+			println(commands.RepositoryDiscovered(repo))
 
-		return nil
+			localDiscoveryOptions, err := db.ReadRepoDiscoveryOptions(repo)
+			if err != nil {
+				panic(err)
+			}
+
+			mergedOptions := globalDiscoveryOptions.Merge(localDiscoveryOptions)
+
+			files := repository.DiscoverRepositoryFiles(repo, mergedOptions)
+
+			for file := range files {
+				err := db.WriteRepoFile(repo, file)
+				if err != nil {
+					color.Red("Failed to write %s to database: %s", file, err)
+					continue
+				}
+
+				print(commands.FileProcessed(repo, file, "File added"))
+			}
+		}
+		return commands.Push(cfg, db)
 	},
 }

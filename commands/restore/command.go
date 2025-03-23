@@ -1,11 +1,13 @@
 package restore
 
 import (
-	"ide-config-sync/commands"
-	"ide-config-sync/ide"
-	"ide-config-sync/repository"
+	"path/filepath"
+
+	"repo-file-sync/commands"
+	"repo-file-sync/util/fsutil"
 
 	"github.com/fatih/color"
+	"github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 )
 
@@ -19,8 +21,8 @@ func init() {
 
 var Command = &cobra.Command{
 	Use:   "restore",
-	Short: "Restore IDE configs from the database",
-	Long:  "Restore IDE configs from the database",
+	Short: "Restore repository files from the database",
+	Long:  "Restore repository files from the database",
 	RunE: func(c *cobra.Command, args []string) error {
 		db, repos, _, err := commands.Setup(baseDir)
 		if err != nil {
@@ -28,27 +30,35 @@ var Command = &cobra.Command{
 		}
 
 		for repo := range repos {
-			remotes, err := repository.ReadRemotes(repo)
-			if err != nil {
-				println(commands.FormatFailedToReadRemotes(repo, err))
-				continue
-			}
+			println(commands.RepositoryDiscovered(repo))
 
-			println(commands.FormatRepositoryDiscovered(repo, remotes))
-
-			knownConfigs, err := db.Read(repo)
+			files, err := db.ReadRepoFiles(repo)
 			if err != nil {
 				panic(err)
 			}
 
-			for _, config := range knownConfigs {
-				err = ide.WriteIDEFolder(repo, config)
+			for _, file := range files {
+				err := copy.Copy(file.AbsolutePath, repo)
 				if err != nil {
-					color.Red("Failed to restore %s: %s", config.RelativePath, err)
+					color.Red("Failed to restore files: %s", err)
 					continue
 				}
 
-				println(color.BlueString("  +"), "IDE config restored:", color.BlueString(config.RelativePath))
+				restoredFiles, err := fsutil.ListFiles(file.AbsolutePath)
+				if err != nil {
+					color.Red("Failed to list files: %s", err)
+					continue
+				}
+
+				for _, restoredFile := range restoredFiles {
+					relPath, err := filepath.Rel(file.AbsolutePath, restoredFile)
+					if err != nil {
+						color.Red("Failed to get relative path: %s", err)
+						continue
+					}
+
+					println(color.BlueString("  +"), "File restored:", color.BlueString(relPath))
+				}
 			}
 		}
 

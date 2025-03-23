@@ -1,11 +1,9 @@
 package discover
 
 import (
-	"ide-config-sync/commands"
-	"ide-config-sync/ide"
-	"ide-config-sync/repository"
+	"repo-file-sync/commands"
+	"repo-file-sync/repository"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -17,27 +15,32 @@ func init() {
 
 var Command = &cobra.Command{
 	Use:   "discover",
-	Short: "Discover IDE config files",
-	Long:  "Discover IDE config files",
+	Short: "Discover repositories and files which will be included by the save / restore commands",
+	Long:  "Discover repositories and files which will be included by the save / restore commands",
 	RunE: func(c *cobra.Command, args []string) error {
-		_, repos, _, err := commands.Setup(baseDir)
+		db, repos, _, err := commands.Setup(baseDir)
+		if err != nil {
+			panic(err)
+		}
+
+		globalDiscoverOptions, err := db.ReadGlobalDiscoveryOptions()
 		if err != nil {
 			panic(err)
 		}
 
 		for repo := range repos {
-			remotes, err := repository.ReadRemotes(repo)
+			println(commands.RepositoryDiscovered(repo))
+
+			repoDiscoverOptions, err := db.ReadRepoDiscoveryOptions(repo)
 			if err != nil {
-				println(commands.FormatFailedToReadRemotes(repo, err))
-				continue
+				panic(err)
 			}
 
-			println(commands.FormatRepositoryDiscovered(repo, remotes))
+			mergedOptions := globalDiscoverOptions.Merge(repoDiscoverOptions)
+			files := repository.DiscoverRepositoryFiles(repo, mergedOptions)
 
-			ideConfigs := ide.ReadIDEFolderPaths(repo)
-
-			for path := range ideConfigs {
-				println(color.BlueString("  +"), "IDE config found at", color.BlueString(path))
+			for file := range files {
+				print(commands.FileProcessed(repo, file, "File discovered"))
 			}
 		}
 
