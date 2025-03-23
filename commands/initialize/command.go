@@ -6,10 +6,10 @@ import (
 	"net/url"
 	"os"
 
-	"ide-config-sync/config"
-	"ide-config-sync/database"
-	"ide-config-sync/util/commandutil"
-	"ide-config-sync/util/fsutil"
+	"repo-file-sync/config"
+	"repo-file-sync/database"
+	"repo-file-sync/util/commandutil"
+	"repo-file-sync/util/fsutil"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

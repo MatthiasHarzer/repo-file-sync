@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"ide-config-sync/util/fsutil"
+	"repo-file-sync/util/fsutil"
 )
 
 var (
@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-	StoragePath = filepath.ToSlash(fmt.Sprintf("%s/.ide-config-sync", fsutil.HomeDir()))
+	StoragePath = filepath.ToSlash(fmt.Sprintf("%s/.repo-file-sync", fsutil.HomeDir()))
 	File = fmt.Sprintf("%s/config.json", StoragePath)
 	DefaultDatabaseRepoPath = fmt.Sprintf("%s/database", StoragePath)
 }

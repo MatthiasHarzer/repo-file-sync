@@ -1,4 +1,4 @@
-module ide-config-sync
+module repo-file-sync
 
 go 1.24
 

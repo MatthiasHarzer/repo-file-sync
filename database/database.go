@@ -1,6 +1,6 @@
 package database
 
-import "ide-config-sync/repository"
+import "repo-file-sync/repository"
 
 type Database interface {
 	WriteRepoFile(repo string, file repository.File) error

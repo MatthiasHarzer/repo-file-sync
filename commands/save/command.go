@@ -1,8 +1,8 @@
 package save
 
 import (
-	"ide-config-sync/commands"
-	"ide-config-sync/repository"
+	"repo-file-sync/commands"
+	"repo-file-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

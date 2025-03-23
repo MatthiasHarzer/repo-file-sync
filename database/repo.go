@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"strings"
 
-	"ide-config-sync/repository"
-	"ide-config-sync/set"
-	"ide-config-sync/util/fsutil"
+	"repo-file-sync/repository"
+	"repo-file-sync/set"
+	"repo-file-sync/util/fsutil"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/otiai10/copy"

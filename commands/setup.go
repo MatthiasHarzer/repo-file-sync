@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"ide-config-sync/config"
-	"ide-config-sync/database"
-	"ide-config-sync/repository"
+	"repo-file-sync/config"
+	"repo-file-sync/database"
+	"repo-file-sync/repository"
 
 	"github.com/fatih/color"
 )
@@ -30,7 +30,7 @@ func Setup(baseDir string) (database.Database, <-chan string, *config.Config, er
 
 	db, err := database.NewRepoDatabase(cfg.DatabasePath)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not open database repo\n\ndid you run `ide-config-sync init`?")
+		return nil, nil, nil, fmt.Errorf("could not open database repo\n\ndid you run `repo-file-sync init`?")
 	}
 
 	if !cfg.LocalOnly {

@@ -3,7 +3,7 @@ package add
 import (
 	"os"
 
-	"ide-config-sync/commands"
+	"repo-file-sync/commands"
 
 	"github.com/fatih/color"
 	"github.com/go-git/go-git/v5"

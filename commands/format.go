@@ -3,7 +3,7 @@ package commands
 import (
 	"path/filepath"
 
-	"ide-config-sync/repository"
+	"repo-file-sync/repository"
 
 	"github.com/fatih/color"
 )

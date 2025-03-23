@@ -1,6 +1,6 @@
 package repository
 
-import "ide-config-sync/util/fsutil"
+import "repo-file-sync/util/fsutil"
 
 type FileType string
 

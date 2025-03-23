@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os"
 
-	"ide-config-sync/util/fsutil"
+	"repo-file-sync/util/fsutil"
 )
 
 type Config struct {

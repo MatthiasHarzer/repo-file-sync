@@ -3,8 +3,8 @@ package restore
 import (
 	"path/filepath"
 
-	"ide-config-sync/commands"
-	"ide-config-sync/util/fsutil"
+	"repo-file-sync/commands"
+	"repo-file-sync/util/fsutil"
 
 	"github.com/fatih/color"
 	"github.com/otiai10/copy"

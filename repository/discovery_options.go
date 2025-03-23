@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"ide-config-sync/set"
+	"repo-file-sync/set"
 )
 
 type DiscoveryOptions struct {
