@@ -6,6 +6,6 @@ OPEN := xdg-open
 endif
 
 build:
-	@GOOS=windows GOARCH=amd64 go build -o ./bin/ide-config-sync.exe ./main.go
+	@GOOS=windows GOARCH=amd64 go build -o ./bin/repo-file-sync.exe ./main.go
 
-	@GOOS=linux GOARCH=amd64 go build -o ./bin/ide-config-sync ./main.go
+	@GOOS=linux GOARCH=amd64 go build -o ./bin/repo-file-sync ./main.go
