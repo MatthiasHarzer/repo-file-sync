@@ -1,5 +1,5 @@
 # Repo File Sync
-A tool to save and restore ignored files inside a Git repositories, like IDE configurations.
+A tool to save and restore ignored files inside a Git repositories, based on defined Glob-patterns.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <br>
@@ -36,16 +36,20 @@ This will save the files to a remote repository to sync them between multiple de
 
 ## Included / excluded files
 ### Included files
-The tool was originally designed to save and restore IDE configurations, so it includes by default the following folders:
-- Visual Studio Code (`.vscode`)
-- JetBrains IDEs (`.idea`)
+The tool was originally designed to save and restore IDE configurations, so it includes by default the following patterns:
+- Visual Studio Code (`.vscode/**`)
+- JetBrains IDEs (`.idea/**`)
+> Patterns are evaluated at the repository root, so the pattern `.vscode/**` will match all files and folders inside the `.vscode` folder.
+
+### Adding custom patterns
+1. Run `repo-file-sync addpattern <pattern-1>, <pattern-2>, ...` to add one or more Glob-patterns to match files from the repository root.
+
+### Removing custom patterns
+1. Run `repo-file-sync removepattern <pattern-1>, <pattern-2>, ...` to remove one or more Glob-patterns.
+
 
 ### Excluded files
-The tool excludes the following folders by default and won't search inside them:
+The tool excludes the following folders when discovering repositories:
 - Node modules (`node_modules`)
 - Virtual environments (`venv`, `.venv`)
-
-### Adding custom files or folders
-1. Run `repo-file-sync add <pattern-1>, <pattern-2>, ...` to add one or more patterns to the list of included files. If a folder or file matches the pattern, it will be included. All patterns are also evaluated as glob-patterns.
-
-> Removing patterns is currently not supported, but you can manually adjust the includes from within the Database-Repository.
+> This does not impact the included files, as they are still saved and restored.

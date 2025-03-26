@@ -1,52 +1,35 @@
 package repository
 
 import (
-	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
+	"strings"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/go-git/go-git/v5"
 )
 
-var repoSearchIgnorePatterns = []string{
+var repoSearchIgnoreFolders = []string{
 	"node_modules",
 	"venv",
 	".venv",
 }
 
-func shouldSkipPath(path string, excludePatterns []string) bool {
-	for _, pattern := range excludePatterns {
-		matched, _ := regexp.MatchString(pattern, filepath.Base(path))
-		if matched {
+func shouldSkipPath(path string, excludedFolders []string) bool {
+	for _, pattern := range excludedFolders {
+		if strings.EqualFold(pattern, filepath.Base(path)) {
 			return true
 		}
 	}
 	return false
 }
 
-func shouldIncludePath(path string, includePatterns []string) bool {
-	if len(includePatterns) == 0 {
-		return true
-	}
-
-	for _, pattern := range includePatterns {
-		matched, _ := regexp.MatchString(pattern, filepath.Base(path))
-		if matched {
-			return true
-		}
-	}
-	return false
-}
-
-func find(root string, includePatterns []string, excludePatterns []string) <-chan File {
-	queue := []string{root}
-
-	folders := make(chan File)
+func DiscoverRepositories(base, ignoredRepo string) <-chan string {
+	queue := []string{base}
+	repos := make(chan string)
 
 	go func() {
-		defer close(folders)
-
+		defer close(repos)
 		for len(queue) > 0 {
 			dir := queue[0]
 			queue = queue[1:]
@@ -57,65 +40,30 @@ func find(root string, includePatterns []string, excludePatterns []string) <-cha
 			}
 
 			for _, entry := range entries {
-				fullPath := filepath.Join(dir, entry.Name())
-
-				if shouldSkipPath(fullPath, excludePatterns) {
+				if !entry.IsDir() {
 					continue
 				}
-				if shouldIncludePath(fullPath, includePatterns) {
-					relPath, err := filepath.Rel(root, fullPath)
+				fullPath := filepath.Join(dir, entry.Name())
+
+				if shouldSkipPath(fullPath, repoSearchIgnoreFolders) {
+					continue
+				}
+
+				if filepath.ToSlash(entry.Name()) == filepath.ToSlash(ignoredRepo) {
+					continue
+				}
+
+				if entry.Name() == ".git" {
+					_, err := git.PlainOpen(dir)
 					if err != nil {
 						continue
 					}
-					var fileType FileType
-					if entry.IsDir() {
-						fileType = FileTypeDir
-					} else {
-						fileType = FileTypeFile
-					}
-
-					folders <- File{
-						Type:             fileType,
-						AbsolutePath:     fullPath,
-						PathFromRepoRoot: relPath,
-					}
+					repos <- dir
 					continue
 				}
 
-				if entry.IsDir() {
-					queue = append(queue, fullPath)
-				}
+				queue = append(queue, fullPath)
 			}
-		}
-
-	}()
-
-	return folders
-}
-
-func DiscoverRepositories(base, ignoredRepo string) <-chan string {
-	repositories := find(base, []string{"^.git$"}, repoSearchIgnorePatterns)
-	repos := make(chan string)
-
-	go func() {
-		defer close(repos)
-
-		for repository := range repositories {
-			if repository.IsFile() {
-				continue
-			}
-
-			repoDir := filepath.Dir(repository.AbsolutePath)
-			if filepath.ToSlash(repoDir) == filepath.ToSlash(ignoredRepo) {
-				continue
-			}
-
-			_, err := git.PlainOpen(repoDir)
-			if err != nil {
-				continue
-			}
-
-			repos <- repoDir
 		}
 	}()
 
@@ -129,16 +77,8 @@ func DiscoverRepositoryFiles(repo string, config DiscoveryOptions) <-chan File {
 	go func() {
 		defer close(files)
 
-		foundFiles := find(repo, config.IncludePatterns.Slice(), config.ExcludePatterns.Slice())
-
-		for file := range foundFiles {
-			files <- file
-			knownFiles[file.AbsolutePath] = true
-		}
-
-		// Interpret includes as globs as well
 		for _, pattern := range config.IncludePatterns.Slice() {
-			matching, err := fs.Glob(os.DirFS(repo), pattern)
+			matching, err := doublestar.Glob(os.DirFS(repo), pattern, doublestar.WithFilesOnly())
 			if err != nil {
 				continue
 			}
@@ -151,7 +91,6 @@ func DiscoverRepositoryFiles(repo string, config DiscoveryOptions) <-chan File {
 				}
 
 				files <- File{
-					Type:             FileTypeFile,
 					AbsolutePath:     absolutePath,
 					PathFromRepoRoot: file,
 				}

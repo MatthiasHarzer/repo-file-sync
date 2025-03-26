@@ -1,10 +1,9 @@
 package restore
 
 import (
-	"path/filepath"
+	"fmt"
 
 	"repo-file-sync/commands"
-	"repo-file-sync/util/fsutil"
 
 	"github.com/fatih/color"
 	"github.com/otiai10/copy"
@@ -37,28 +36,15 @@ var Command = &cobra.Command{
 				panic(err)
 			}
 
-			for _, file := range files {
-				err := copy.Copy(file.AbsolutePath, repo)
+			for file := range files {
+				repoFile := fmt.Sprintf("%s/%s", repo, file.PathFromRepoRoot)
+				err := copy.Copy(file.AbsolutePath, repoFile)
 				if err != nil {
 					color.Red("Failed to restore files: %s", err)
 					continue
 				}
 
-				restoredFiles, err := fsutil.ListFiles(file.AbsolutePath)
-				if err != nil {
-					color.Red("Failed to list files: %s", err)
-					continue
-				}
-
-				for _, restoredFile := range restoredFiles {
-					relPath, err := filepath.Rel(file.AbsolutePath, restoredFile)
-					if err != nil {
-						color.Red("Failed to get relative path: %s", err)
-						continue
-					}
-
-					println(color.BlueString("  +"), "File restored:", color.BlueString(relPath))
-				}
+				println(color.BlueString("  +"), "File restored:", color.BlueString(file.PathFromRepoRoot))
 			}
 		}
 
