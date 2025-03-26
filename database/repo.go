@@ -186,6 +186,7 @@ func (d *Repo) ReadRepoFiles(repo string) (<-chan repository.File, error) {
 	files := make(chan repository.File)
 
 	go func() {
+		defer close(files)
 
 		for _, remote := range remotes {
 			filesPath := d.remoteFilesDir(remote)
