@@ -7,7 +7,7 @@ func New[T comparable]() Set[T] {
 }
 
 func FromSlice[T comparable](slice []T) Set[T] {
-	s := make(Set[T])
+	s := New[T]()
 	for _, value := range slice {
 		s[value] = true
 	}
@@ -30,7 +30,7 @@ func (s Set[T]) Remove(value T) {
 }
 
 func (s Set[T]) Copy() Set[T] {
-	c := make(Set[T])
+	c := New[T]()
 	for value := range s {
 		c[value] = true
 	}
