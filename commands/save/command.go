@@ -52,7 +52,7 @@ var Command = &cobra.Command{
 					continue
 				}
 
-				print(commands.FileProcessed(repo, file, "File added"))
+				println(color.BlueString("  +"), "File saved:", color.BlueString(file.PathFromRepoRoot))
 			}
 		}
 		return commands.Push(cfg, db)

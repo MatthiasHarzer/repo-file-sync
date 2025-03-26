@@ -158,26 +158,43 @@ func (d *Repo) WriteRepoDiscoveryOptions(repo string, options repository.Discove
 	return nil
 }
 
-func (d *Repo) ReadRepoFiles(repo string) ([]repository.File, error) {
+func (d *Repo) getComputedRepoDiscoveryOptions(repo string) (repository.DiscoveryOptions, error) {
+	globalOptions, err := d.ReadGlobalDiscoveryOptions()
+	if err != nil {
+		return repository.DiscoveryOptions{}, err
+	}
+
+	repoOptions, err := d.ReadRepoDiscoveryOptions(repo)
+	if err != nil {
+		return repository.DiscoveryOptions{}, err
+	}
+
+	return globalOptions.Merge(repoOptions), nil
+}
+
+func (d *Repo) ReadRepoFiles(repo string) (<-chan repository.File, error) {
 	remotes, err := repository.ReadRemotes(repo)
 	if err != nil {
 		return nil, err
 	}
 
-	var files []repository.File
-	for _, remote := range remotes {
-		filesPath := d.remoteFilesDir(remote)
-		exists, _ := fsutil.Exists(filesPath)
-		if !exists {
-			continue
-		}
-
-		files = append(files, repository.File{
-			Type:             repository.FileTypeDir,
-			PathFromRepoRoot: "/",
-			AbsolutePath:     filesPath,
-		})
+	options, err := d.getComputedRepoDiscoveryOptions(repo)
+	if err != nil {
+		return nil, err
 	}
+
+	files := make(chan repository.File)
+
+	go func() {
+
+		for _, remote := range remotes {
+			filesPath := d.remoteFilesDir(remote)
+			repoFiles := repository.DiscoverRepositoryFiles(filesPath, options)
+			for file := range repoFiles {
+				files <- file
+			}
+		}
+	}()
 
 	return files, nil
 }
@@ -242,26 +259,19 @@ func (d *Repo) ReadGlobalDiscoveryOptions() (repository.DiscoveryOptions, error)
 		return options, nil
 	}
 	includeLines, inclErr := d.readGlobalIncludes()
-	excludeLines, exclErr := d.readGlobalExcludes()
 
-	if inclErr != nil || exclErr != nil {
-		return repository.DiscoveryOptions{}, fmt.Errorf("failed to read global includes / excludes")
+	if inclErr != nil {
+		return repository.DiscoveryOptions{}, fmt.Errorf("failed to read global includes")
 	}
 
 	options := repository.DefaultGlobalDiscoveryOptions()
 	options.IncludePatterns = set.FromSlice(includeLines)
-	options.ExcludePatterns = set.FromSlice(excludeLines)
 
 	return options, nil
 }
 
 func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) error {
 	err := fsutil.WriteFileLines(d.globalIncludesFile(), config.IncludePatterns.Slice())
-	if err != nil {
-		return err
-	}
-
-	err = fsutil.WriteFileLines(d.globalExcludesFile(), config.ExcludePatterns.Slice())
 	if err != nil {
 		return err
 	}
@@ -280,7 +290,7 @@ func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) e
 		return fmt.Errorf("failed to add %s to git: %s", d.globalExcludesFile(), err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", "Update global includes / excludes")
+	cmd = exec.Command("git", "commit", "-m", "Update global includes")
 	cmd.Dir = d.Directory
 	_ = cmd.Run()
 

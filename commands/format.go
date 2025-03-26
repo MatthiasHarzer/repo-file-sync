@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"path/filepath"
-
 	"repo-file-sync/repository"
 
 	"github.com/fatih/color"
@@ -22,24 +20,4 @@ func RepositoryDiscovered(repo string) string {
 		remotesString += color.YellowString(remote)
 	}
 	return color.GreenString("+") + " Discovered " + color.GreenString(repo) + " (" + remotesString + ")"
-}
-
-func FileProcessed(repo string, file repository.File, messagePrefix string) string {
-	files, err := file.ListFiles()
-	if err != nil {
-		return color.RedString("- Failed to list files")
-	}
-
-	var output string
-	for _, addedFile := range files {
-		relPath, err := filepath.Rel(repo, addedFile)
-		if err != nil {
-			return color.RedString("- Failed to get relative path: %s", err)
-		}
-		if relPath == "" {
-			continue
-		}
-		output += color.BlueString("  + ") + messagePrefix + ": " + color.BlueString(relPath) + "\n"
-	}
-	return output
 }

@@ -4,6 +4,7 @@ import (
 	"repo-file-sync/commands"
 	"repo-file-sync/repository"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +41,7 @@ var Command = &cobra.Command{
 			files := repository.DiscoverRepositoryFiles(repo, mergedOptions)
 
 			for file := range files {
-				print(commands.FileProcessed(repo, file, "File discovered"))
+				println(color.BlueString("  +"), "File discovered:", color.BlueString(file.PathFromRepoRoot))
 			}
 		}
 
