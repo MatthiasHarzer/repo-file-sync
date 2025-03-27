@@ -4,6 +4,7 @@ import (
 	"repo-file-sync/commands/addpattern"
 	"repo-file-sync/commands/discover"
 	"repo-file-sync/commands/initialize"
+	"repo-file-sync/commands/pull"
 	"repo-file-sync/commands/removepattern"
 	"repo-file-sync/commands/restore"
 	"repo-file-sync/commands/save"
@@ -18,6 +19,7 @@ func init() {
 	command.AddCommand(restore.Command)
 	command.AddCommand(initialize.Command)
 	command.AddCommand(discover.Command)
+	command.AddCommand(pull.Command)
 }
 
 var command = &cobra.Command{
