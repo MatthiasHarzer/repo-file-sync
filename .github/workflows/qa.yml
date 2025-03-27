@@ -15,7 +15,7 @@ jobs:
     name: QA
     strategy:
       matrix:
-        os: [ubuntu-latest-16core, windows-latest]
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
 
