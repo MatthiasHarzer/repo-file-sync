@@ -41,7 +41,7 @@ var Command = &cobra.Command{
 			}
 		}
 
-		db, _, cfg, err := commands.Setup(baseDir)
+		db, _, cfg, _, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}

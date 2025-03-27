@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -72,31 +73,28 @@ func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 
 func DiscoverRepositoryFiles(repo string, config DiscoveryOptions) <-chan File {
 	files := make(chan File)
-	knownFiles := make(map[string]bool)
 
 	go func() {
 		defer close(files)
 
 		for _, pattern := range config.IncludePatterns.Slice() {
-			matching, err := doublestar.Glob(os.DirFS(repo), pattern, doublestar.WithFilesOnly())
-			if err != nil {
-				continue
-			}
+			_ = doublestar.GlobWalk(os.DirFS(repo), pattern, func(path string, d fs.DirEntry) error {
+				absolutePath := filepath.ToSlash(filepath.Join(repo, path))
 
-			for _, file := range matching {
-				absolutePath := filepath.Join(repo, file)
-
-				if _, ok := knownFiles[absolutePath]; ok {
-					continue
+				for _, excludePattern := range config.ExcludePatterns.Slice() {
+					if matched, _ := doublestar.PathMatch(excludePattern, path); matched {
+						return nil
+					}
 				}
 
 				files <- File{
 					AbsolutePath:     absolutePath,
-					PathFromRepoRoot: file,
+					PathFromRepoRoot: path,
 				}
-			}
-		}
 
+				return nil
+			}, doublestar.WithFilesOnly())
+		}
 	}()
 
 	return files

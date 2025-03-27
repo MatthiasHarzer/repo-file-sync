@@ -1,4 +1,4 @@
-package removepattern
+package remove
 
 import (
 	"os"
@@ -18,10 +18,10 @@ var (
 
 func init() {
 	Command.Flags().StringVarP(&baseDir, "dir", "d", "", "The directory to search for repositories. Defaults to the current working directory.")
-	Command.Flags().BoolVarP(&isGlobalPattern, "global", "g", false, "Whether to remove the patterns as global pattern")
+	Command.Flags().BoolVarP(&isGlobalPattern, "global", "g", false, "Whether to remove the patterns from global patterns")
 }
 
-func removePatterns(options *repository.DiscoveryOptions, args []string) {
+func removeIncludePatterns(options *repository.DiscoveryOptions, args []string) {
 	for _, arg := range args {
 		options.IncludePatterns.Remove(arg)
 		println(color.GreenString("+"), "Removed include pattern", color.GreenString(arg))
@@ -29,10 +29,10 @@ func removePatterns(options *repository.DiscoveryOptions, args []string) {
 }
 
 var Command = &cobra.Command{
-	Use:   "removepattern",
-	Short: "Removes a custom pattern to include",
-	Long:  "Removes a custom pattern to include",
-	RunE: func(c *cobra.Command, args []string) error {
+	Use:   "remove",
+	Short: "Remove a custom glob-pattern from includes",
+	Long:  "Remove a custom glob-pattern from includes",
+	RunE: func(cmd *cobra.Command, args []string) error {
 		var err error
 		if baseDir == "" {
 			baseDir, err = os.Getwd()
@@ -50,24 +50,24 @@ var Command = &cobra.Command{
 		isRepo := err == nil
 
 		if isGlobalPattern {
-			println(color.GreenString("Removing global patterns:"))
-			removePatterns(globalDiscoveryOptions, args)
+			println(color.YellowString("Adding global patterns:"))
+			removeIncludePatterns(globalDiscoveryOptions, args)
 
 			err = db.WriteGlobalDiscoveryOptions(*globalDiscoveryOptions)
 			if err != nil {
 				panic(err)
 			}
 		} else if !isRepo {
-			println(color.RedString("Custom ignores can only be removed from repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
+			println(color.RedString("Custom includes can only be removed from repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
 			return nil
 		} else {
-			println(color.GreenString("Removing patterns in repository:"))
+			println(color.YellowString("Adding patterns to repository:"))
 			options, err := db.ReadRepoDiscoveryOptions(baseDir)
 			if err != nil {
 				panic(err)
 			}
 
-			removePatterns(&options, args)
+			removeIncludePatterns(&options, args)
 
 			err = db.WriteRepoDiscoveryOptions(baseDir, options)
 			if err != nil {

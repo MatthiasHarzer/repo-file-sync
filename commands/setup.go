@@ -12,39 +12,46 @@ import (
 	"github.com/fatih/color"
 )
 
-func Setup(baseDir string) (database.Database, <-chan string, *config.Config, error) {
-	var err error
+func uninitializedError(message string) error {
+	return fmt.Errorf("%s\n\ndid you run `repo-file-sync init`?`", message)
+}
+
+func Setup(baseDir string) (db database.Database, repos <-chan string, cfg *config.Config, globalDiscoveryOptions *repository.DiscoveryOptions, err error) {
 	if baseDir == "" {
 		baseDir, err = os.Getwd()
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, nil, err
 		}
 	}
 
 	baseDir = filepath.ToSlash(baseDir)
 
-	cfg, err := config.Load()
+	cfg, err = config.Load()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
-	db, err := database.NewRepoDatabase(cfg.DatabasePath)
+	db, err = database.NewRepoDatabase(cfg.DatabasePath)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not open database repo\n\ndid you run `repo-file-sync init`?")
+		return nil, nil, nil, nil, uninitializedError("could not open database repo")
 	}
 
 	if !cfg.LocalOnly {
 		println("Pulling changes from", color.GreenString(cfg.DatabaseRepoURL))
 		err = db.Pull()
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, nil, err
 		}
 	}
 
-	println("Discovering repositories in", color.GreenString(baseDir))
+	options, err := db.ReadGlobalDiscoveryOptions()
+	if err != nil {
+		return nil, nil, nil, nil, uninitializedError("could not read global discovery options")
+	}
+
 	reposCh := repository.DiscoverRepositories(baseDir, cfg.DatabasePath)
 
-	return db, reposCh, cfg, nil
+	return db, reposCh, cfg, &options, nil
 }
 
 func Push(cfg *config.Config, db database.Database) error {

@@ -23,11 +23,12 @@ var Command = &cobra.Command{
 	Short: "Restore repository files from the database",
 	Long:  "Restore repository files from the database",
 	RunE: func(c *cobra.Command, args []string) error {
-		db, repos, _, err := commands.Setup(baseDir)
+		db, repos, _, _, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}
 
+		println("Discovering repositories in", color.GreenString(baseDir))
 		for repo := range repos {
 			println(commands.RepositoryDiscovered(repo))
 
