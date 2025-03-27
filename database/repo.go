@@ -129,9 +129,23 @@ func (d *Repo) writeRepoIncludes(remote string, includes []string) error {
 		return fmt.Errorf("failed to add %s to git: %s", includesFile, err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update includes for '%s'", remote))
+	return nil
+}
+
+func (d *Repo) writeRepoExcludes(remote string, excludes []string) error {
+	excludesFile := d.remoteExcludeFile(remote)
+
+	err := fsutil.WriteFileLines(excludesFile, excludes)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("git", "add", excludesFile, "--force")
 	cmd.Dir = d.Directory
-	_ = cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to add %s to git: %s", excludesFile, err)
+	}
 
 	return nil
 }
@@ -162,6 +176,17 @@ func (d *Repo) WriteRepoDiscoveryOptions(repo string, options repository.Discove
 		if err != nil {
 			return err
 		}
+
+		err = d.writeRepoExcludes(remote, options.ExcludePatterns.Slice())
+		if err != nil {
+			return err
+		}
+
+		if _, ok := d.changesSinceLastPush[remote]; !ok {
+			d.changesSinceLastPush[remote] = 0
+		}
+
+		d.changesSinceLastPush[remote] += 2
 	}
 	return nil
 }

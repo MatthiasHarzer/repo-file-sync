@@ -22,7 +22,7 @@ func init() {
 func removeExcludePatterns(options *repository.DiscoveryOptions, args []string) {
 	for _, arg := range args {
 		options.ExcludePatterns.Remove(arg)
-		println(color.GreenString("+"), "Removed include pattern", color.GreenString(arg))
+		println(color.GreenString("+"), "Removed exclude pattern", color.GreenString(arg))
 	}
 }
 
