@@ -311,7 +311,7 @@ func (d *Repo) Push() error {
 		totalFiles += count
 	}
 
-	title := "Update upto "
+	title := "Update up to "
 	if totalFiles == 1 {
 		title += "1 file"
 	} else {
