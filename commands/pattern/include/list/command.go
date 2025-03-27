@@ -37,7 +37,7 @@ var Command = &cobra.Command{
 				println(color.GreenString("  +"), pattern)
 			}
 		} else if !isRepo {
-			println(color.RedString("Include patterns can only be listed from withing repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
+			println(color.RedString("Include patterns can only be listed from within repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
 			return nil
 		} else {
 			println(color.YellowString("Repository include patterns:"))
