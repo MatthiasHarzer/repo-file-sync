@@ -21,12 +21,12 @@ var Command = &cobra.Command{
 	Short: "Save repository files to the database",
 	Long:  "Save repository files to the database",
 	RunE: func(c *cobra.Command, args []string) error {
-		db, repos, cfg, globalDiscoveryOptions, err := commands.Setup(baseDir)
+		db, dir, repos, cfg, globalDiscoveryOptions, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}
 
-		println("Discovering repositories in", color.GreenString(baseDir))
+		println("Discovering repositories in", color.GreenString(dir))
 		for repo := range repos {
 			println(commands.RepositoryDiscovered(repo))
 

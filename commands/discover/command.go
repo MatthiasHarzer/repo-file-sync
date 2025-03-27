@@ -19,12 +19,12 @@ var Command = &cobra.Command{
 	Short: "Discover repositories and files which will be included by the save / restore commands",
 	Long:  "Discover repositories and files which will be included by the save / restore commands",
 	RunE: func(c *cobra.Command, args []string) error {
-		db, repos, _, globalDiscoveryOptions, err := commands.Setup(baseDir)
+		db, dir, repos, _, globalDiscoveryOptions, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}
 
-		println("Discovering repositories in", color.GreenString(baseDir))
+		println("Discovering repositories in", color.GreenString(dir))
 		for repo := range repos {
 			println(commands.RepositoryDiscovered(repo))
 

@@ -315,6 +315,11 @@ func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) e
 		return err
 	}
 
+	err = fsutil.WriteFileLines(d.globalExcludesFile(), config.ExcludePatterns.Slice())
+	if err != nil {
+		return err
+	}
+
 	cmd := exec.Command("git", "add", d.globalIncludesFile(), "--force")
 	cmd.Dir = d.Directory
 	err = cmd.Run()

@@ -31,7 +31,7 @@ var Command = &cobra.Command{
 	Short: "Add a custom glob-pattern to exclude",
 	Long:  "Add a custom glob-pattern to exclude",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db, _, cfg, globalDiscoveryOptions, err := commands.Setup(baseDir)
+		db, _, _, cfg, globalDiscoveryOptions, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}

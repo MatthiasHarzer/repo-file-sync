@@ -16,11 +16,11 @@ func uninitializedError(message string) error {
 	return fmt.Errorf("%s\n\ndid you run `repo-file-sync init`?`", message)
 }
 
-func Setup(baseDir string) (db database.Database, repos <-chan string, cfg *config.Config, globalDiscoveryOptions *repository.DiscoveryOptions, err error) {
+func Setup(baseDir string) (db database.Database, usedBaseDir string, repos <-chan string, cfg *config.Config, globalDiscoveryOptions *repository.DiscoveryOptions, err error) {
 	if baseDir == "" {
 		baseDir, err = os.Getwd()
 		if err != nil {
-			return nil, nil, nil, nil, err
+			return nil, "", nil, nil, nil, err
 		}
 	}
 
@@ -28,30 +28,30 @@ func Setup(baseDir string) (db database.Database, repos <-chan string, cfg *conf
 
 	cfg, err = config.Load()
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, "", nil, nil, nil, err
 	}
 
 	db, err = database.NewRepoDatabase(cfg.DatabasePath)
 	if err != nil {
-		return nil, nil, nil, nil, uninitializedError("could not open database repo")
+		return nil, "", nil, nil, nil, uninitializedError("could not open database repo")
 	}
 
 	if !cfg.LocalOnly {
 		println("Pulling changes from", color.GreenString(cfg.DatabaseRepoURL))
 		err = db.Pull()
 		if err != nil {
-			return nil, nil, nil, nil, err
+			return nil, "", nil, nil, nil, err
 		}
 	}
 
 	options, err := db.ReadGlobalDiscoveryOptions()
 	if err != nil {
-		return nil, nil, nil, nil, uninitializedError("could not read global discovery options")
+		return nil, "", nil, nil, nil, uninitializedError("could not read global discovery options")
 	}
 
 	reposCh := repository.DiscoverRepositories(baseDir, cfg.DatabasePath)
 
-	return db, reposCh, cfg, &options, nil
+	return db, baseDir, reposCh, cfg, &options, nil
 }
 
 func Push(cfg *config.Config, db database.Database) error {

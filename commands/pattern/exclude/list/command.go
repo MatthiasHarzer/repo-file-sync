@@ -23,7 +23,7 @@ var Command = &cobra.Command{
 	Short: "List all patterns to exclude",
 	Long:  "List all patterns to exclude",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db, _, _, globalDiscoveryOptions, err := commands.Setup(baseDir)
+		db, _, _, _, globalDiscoveryOptions, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}

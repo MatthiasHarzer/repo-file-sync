@@ -22,7 +22,9 @@ var defaultIncludePatterns = []string{
 }
 
 var defaultExcludePatterns = []string{
+	"node_modules/**",
 	"**/node_modules/**",
+	"*venv/**",
 	"**/*venv/**",
 }
 
@@ -87,6 +89,8 @@ func readGlobalDiscoveryOptions() (repository.DiscoveryOptions, error) {
 	if accept {
 		options.IncludePatterns.Add(defaultIncludePatterns...)
 	}
+
+	println()
 
 	color.Set(color.Bold).Println("Exclude patterns:")
 	for _, pattern := range defaultExcludePatterns {
@@ -165,6 +169,7 @@ var Command = &cobra.Command{
 			return
 		}
 		color.Green("Database repository created at %s", cfg.DatabasePath)
+		println("----------------------------------------")
 
 		globalDiscoveryOptions, err := readGlobalDiscoveryOptions()
 		if err != nil {

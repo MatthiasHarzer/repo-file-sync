@@ -5,7 +5,6 @@ import (
 	"repo-file-sync/commands/initialize"
 	"repo-file-sync/commands/pattern"
 	"repo-file-sync/commands/pull"
-	"repo-file-sync/commands/removepattern"
 	"repo-file-sync/commands/restore"
 	"repo-file-sync/commands/save"
 
@@ -14,7 +13,6 @@ import (
 
 func init() {
 	command.AddCommand(pattern.Command)
-	command.AddCommand(removepattern.Command)
 	command.AddCommand(save.Command)
 	command.AddCommand(restore.Command)
 	command.AddCommand(initialize.Command)

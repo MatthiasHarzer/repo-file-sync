@@ -26,7 +26,7 @@ func BooleanPrompt(prompt string, defaultValue bool) (bool, error) {
 
 		text := scanner.Text()
 		if text == "" {
-			return false, nil
+			return defaultValue, nil
 		}
 
 		switch strings.ToLower(text) {
