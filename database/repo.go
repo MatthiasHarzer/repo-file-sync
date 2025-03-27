@@ -334,7 +334,7 @@ func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) e
 		return fmt.Errorf("failed to add %s to git: %s", d.globalExcludesFile(), err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", "Update global includes")
+	cmd = exec.Command("git", "commit", "-m", "Update global includes/excludes")
 	cmd.Dir = d.Directory
 	_ = cmd.Run()
 
