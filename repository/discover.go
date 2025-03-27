@@ -82,7 +82,7 @@ func DiscoverRepositoryFiles(repo string, config DiscoveryOptions) <-chan File {
 				absolutePath := filepath.ToSlash(filepath.Join(repo, path))
 
 				for _, excludePattern := range config.ExcludePatterns.Slice() {
-					if matched, _ := doublestar.PathMatch(excludePattern, path); matched {
+					if matched, _ := doublestar.PathMatch(excludePattern, absolutePath); matched {
 						return nil
 					}
 				}

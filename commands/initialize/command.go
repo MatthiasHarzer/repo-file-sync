@@ -22,10 +22,9 @@ var defaultIncludePatterns = []string{
 }
 
 var defaultExcludePatterns = []string{
-	"node_modules/**",
 	"**/node_modules/**",
-	"*venv/**",
-	"**/*venv/**",
+	"**/venv/**",
+	"**/.venv/**",
 }
 
 func readUseLocalOnly() (bool, error) {

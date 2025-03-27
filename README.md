@@ -43,7 +43,6 @@ The tool uses a set of global include/exclude patterns to determine which files 
 Repo File Sync was originally designed to save and restore IDE configurations, so it includes by default the following patterns:
 - Visual Studio Code (`**/.vscode/**`)
 - JetBrains IDEs (`**/.idea/**`)
-> Patterns are evaluated at the repository root, so the pattern `**/.vscode/**` will match all files and folders inside the `.vscode` folder, as well as all `.vscode` folders in subfolders.
 
 #### Adding include patterns
 1. Run `repo-file-sync pattern include add <pattern-1>, <pattern-2>, ...` to add one or more Glob-patterns to match files from the repository root.
@@ -55,8 +54,8 @@ Repo File Sync was originally designed to save and restore IDE configurations, s
 
 ### Excluded files
 The following patterns are excluded by default, to prevent matching files in some ignored folders:
-- Node modules (`**/node_modules/**`, `node_modules/**`)
-- Virtual environments (`**/*venv/**`, `*venv/**`)
+- Node modules (`**/node_modules/**`)
+- Virtual environments (`**/venv/**`, `**/.venv/**`)
 > Exclude patterns are evaluated **after** include patterns, so a file matching an exclude pattern will always be excluded, even if it matches an include pattern.
 
 #### Adding exclude patterns
