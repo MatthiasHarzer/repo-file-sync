@@ -24,7 +24,7 @@ func init() {
 func addPatterns(options *repository.DiscoveryOptions, args []string) {
 	for _, arg := range args {
 		options.IncludePatterns.Add(arg)
-		println(color.GreenString("+"), "Added include pattern", color.GreenString(arg))
+		println(color.GreenString("  +"), "Added include pattern", color.GreenString(arg))
 	}
 }
 
@@ -50,6 +50,7 @@ var Command = &cobra.Command{
 		isRepo := err == nil
 
 		if isGlobalPattern {
+			println(color.YellowString("Adding global patterns:"))
 			options, err := db.ReadGlobalDiscoveryOptions()
 			if err != nil {
 				panic(err)
@@ -64,6 +65,7 @@ var Command = &cobra.Command{
 			println(color.RedString("Custom ignores can only be added to repositories or as a global pattern. Please enter a git repository directory first or use the `--global` flag."))
 			return nil
 		} else {
+			println(color.YellowString("Adding patterns to repository:"))
 			options, err := db.ReadRepoDiscoveryOptions(baseDir)
 			if err != nil {
 				panic(err)

@@ -28,8 +28,9 @@ func remoteURLToDir(remoteURL string) string {
 }
 
 type Repo struct {
-	Directory string
-	repo      *git.Repository
+	Directory            string
+	repo                 *git.Repository
+	changesSinceLastPush map[string]int
 }
 
 func NewRepoDatabase(directory string) (Database, error) {
@@ -39,7 +40,8 @@ func NewRepoDatabase(directory string) (Database, error) {
 	}
 
 	return &Repo{
-		Directory: directory,
+		Directory:            directory,
+		changesSinceLastPush: make(map[string]int),
 	}, nil
 }
 
@@ -99,9 +101,10 @@ func (d *Repo) writeRemoteRepoFile(remote string, file repository.File) error {
 		return fmt.Errorf("failed to add %s to git: %s", relativePath, err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update '%s' with '%s'", remote, file.PathFromRepoRoot))
-	cmd.Dir = d.Directory
-	_ = cmd.Run()
+	if _, ok := d.changesSinceLastPush[remote]; !ok {
+		d.changesSinceLastPush[remote] = 0
+	}
+	d.changesSinceLastPush[remote]++
 
 	return nil
 }
@@ -299,7 +302,31 @@ func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) e
 }
 
 func (d *Repo) Push() error {
-	cmd := exec.Command("git", "push")
+	if len(d.changesSinceLastPush) == 0 {
+		return nil
+	}
+
+	totalFiles := 0
+	for _, count := range d.changesSinceLastPush {
+		totalFiles += count
+	}
+	title := fmt.Sprintf("Update %d files in %d repositories", totalFiles, len(d.changesSinceLastPush))
+
+	description := ""
+	for remote := range d.changesSinceLastPush {
+		description += fmt.Sprintf(" - %s\n", remote)
+	}
+
+	cmd := exec.Command("git", "commit", "-m", title, "-m", description)
+	cmd.Dir = d.Directory
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to commit changes: %s", err)
+	}
+
+	d.changesSinceLastPush = make(map[string]int)
+
+	cmd = exec.Command("git", "push")
 	cmd.Dir = d.Directory
 	return cmd.Run()
 }

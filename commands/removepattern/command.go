@@ -50,6 +50,7 @@ var Command = &cobra.Command{
 		isRepo := err == nil
 
 		if isGlobalPattern {
+			println(color.GreenString("Removing global patterns:"))
 			options, err := db.ReadGlobalDiscoveryOptions()
 			if err != nil {
 				panic(err)
@@ -64,6 +65,7 @@ var Command = &cobra.Command{
 			println(color.RedString("Custom ignores can only be removed from repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
 			return nil
 		} else {
+			println(color.GreenString("Removing patterns in repository:"))
 			options, err := db.ReadRepoDiscoveryOptions(baseDir)
 			if err != nil {
 				panic(err)

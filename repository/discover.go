@@ -49,7 +49,7 @@ func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 					continue
 				}
 
-				if filepath.ToSlash(entry.Name()) == filepath.ToSlash(ignoredRepo) {
+				if filepath.ToSlash(fullPath) == filepath.ToSlash(ignoredRepo) {
 					continue
 				}
 
