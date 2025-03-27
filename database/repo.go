@@ -311,7 +311,7 @@ func (d *Repo) Push() error {
 		totalFiles += count
 	}
 
-	title := "Update upto "
+	title := "Update up to "
 	if totalFiles == 1 {
 		title += "1 file"
 	} else {
@@ -328,9 +328,9 @@ func (d *Repo) Push() error {
 	description := ""
 	for remote, count := range d.changesSinceLastPush {
 		if count == 1 {
-			description += fmt.Sprintf(" - %s: Upto 1 file\n", remote)
+			description += fmt.Sprintf(" - %s: Up to 1 file\n", remote)
 		} else {
-			description += fmt.Sprintf(" - %s: Upto %d files\n", remote, count)
+			description += fmt.Sprintf(" - %s: Up to %d files\n", remote, count)
 		}
 	}
 
