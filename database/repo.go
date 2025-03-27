@@ -310,11 +310,28 @@ func (d *Repo) Push() error {
 	for _, count := range d.changesSinceLastPush {
 		totalFiles += count
 	}
-	title := fmt.Sprintf("Update %d files in %d repositories", totalFiles, len(d.changesSinceLastPush))
+
+	title := "Update up to "
+	if totalFiles == 1 {
+		title += "1 file"
+	} else {
+		title += fmt.Sprintf("%d files", totalFiles)
+	}
+	title += " in "
+
+	if len(d.changesSinceLastPush) == 1 {
+		title += "1 repository"
+	} else {
+		title += fmt.Sprintf("%d repositories", len(d.changesSinceLastPush))
+	}
 
 	description := ""
-	for remote := range d.changesSinceLastPush {
-		description += fmt.Sprintf(" - %s\n", remote)
+	for remote, count := range d.changesSinceLastPush {
+		if count == 1 {
+			description += fmt.Sprintf(" - %s: Up to 1 file\n", remote)
+		} else {
+			description += fmt.Sprintf(" - %s: Up to %d files\n", remote, count)
+		}
 	}
 
 	cmd := exec.Command("git", "commit", "-m", title, "-m", description)

@@ -37,9 +37,9 @@ This will save the files to a remote repository to sync them between multiple de
 ## Included / excluded files
 ### Included files
 The tool was originally designed to save and restore IDE configurations, so it includes by default the following patterns:
-- Visual Studio Code (`.vscode/**`)
-- JetBrains IDEs (`.idea/**`)
-> Patterns are evaluated at the repository root, so the pattern `.vscode/**` will match all files and folders inside the `.vscode` folder.
+- Visual Studio Code (`**/.vscode/**`)
+- JetBrains IDEs (`**/.idea/**`)
+> Patterns are evaluated at the repository root, so the pattern `**/.vscode/**` will match all files and folders inside the `.vscode` folder, as well as all `.vscode` folders in subfolders.
 
 ### Adding custom patterns
 1. Run `repo-file-sync addpattern <pattern-1>, <pattern-2>, ...` to add one or more Glob-patterns to match files from the repository root.
