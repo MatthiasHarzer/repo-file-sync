@@ -74,6 +74,11 @@ func (d *Repo) remoteIncludesFile(remote string) string {
 	return fmt.Sprintf("%s/%s/includes", d.Directory, remoteAsPath)
 }
 
+func (d *Repo) remoteExcludeFile(remote string) string {
+	remoteAsPath := remoteURLToDir(remote)
+	return fmt.Sprintf("%s/%s/excludes", d.Directory, remoteAsPath)
+}
+
 func (d *Repo) globalIncludesFile() string {
 	return fmt.Sprintf("%s/.global/includes", d.Directory)
 }
@@ -222,7 +227,7 @@ func (d *Repo) ReadRepoDiscoveryOptions(repo string) (repository.DiscoveryOption
 			options.IncludePatterns.Add(lines...)
 		}
 
-		excludePath := d.globalExcludesFile()
+		excludePath := d.remoteExcludeFile(remote)
 		exists, _ = fsutil.Exists(excludePath)
 		if exists {
 			lines, err := fsutil.ReadFileLines(excludePath)

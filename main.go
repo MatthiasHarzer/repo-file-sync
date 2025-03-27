@@ -3,7 +3,7 @@ package main
 import (
 	"repo-file-sync/commands/discover"
 	"repo-file-sync/commands/initialize"
-	"repo-file-sync/commands/patterns"
+	"repo-file-sync/commands/pattern"
 	"repo-file-sync/commands/pull"
 	"repo-file-sync/commands/removepattern"
 	"repo-file-sync/commands/restore"
@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	command.AddCommand(patterns.Command)
+	command.AddCommand(pattern.Command)
 	command.AddCommand(removepattern.Command)
 	command.AddCommand(save.Command)
 	command.AddCommand(restore.Command)

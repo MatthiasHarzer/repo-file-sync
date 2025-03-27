@@ -1,8 +1,6 @@
 package list
 
 import (
-	"os"
-
 	"repo-file-sync/commands"
 
 	"github.com/fatih/color"
@@ -22,17 +20,9 @@ func init() {
 
 var Command = &cobra.Command{
 	Use:   "list",
-	Short: "Add a custom glob-pattern to include",
-	Long:  "Add a custom glob-pattern to include",
+	Short: "List all include patterns",
+	Long:  "List all include patterns",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var err error
-		if baseDir == "" {
-			baseDir, err = os.Getwd()
-			if err != nil {
-				panic(err)
-			}
-		}
-
 		db, _, _, globalDiscoveryOptions, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
@@ -42,15 +32,15 @@ var Command = &cobra.Command{
 		isRepo := err == nil
 
 		if isGlobalPattern {
-			println(color.YellowString("Global patterns:"))
+			println(color.YellowString("Global include patterns:"))
 			for pattern := range globalDiscoveryOptions.IncludePatterns {
 				println(color.GreenString("  +"), pattern)
 			}
 		} else if !isRepo {
-			println(color.RedString("Ignores can only be listed from repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
+			println(color.RedString("Include patterns can only be listed from withing repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
 			return nil
 		} else {
-			println(color.YellowString("Repository patterns:"))
+			println(color.YellowString("Repository include patterns:"))
 			options, err := db.ReadRepoDiscoveryOptions(baseDir)
 			if err != nil {
 				panic(err)
