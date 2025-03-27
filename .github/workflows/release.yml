@@ -29,7 +29,7 @@ jobs:
       - name: Run QA
         if: false
         run: |
-          make qa-server
+          make qa
       - name: Get next version
         id: get_next_version
         uses: thenativeweb/get-next-version@2.6.3
