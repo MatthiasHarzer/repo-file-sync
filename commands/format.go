@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"path/filepath"
+
 	"repo-file-sync/repository"
 
 	"github.com/fatih/color"
@@ -19,5 +21,10 @@ func RepositoryDiscovered(repo string) string {
 		}
 		remotesString += color.YellowString(remote)
 	}
-	return color.GreenString("+") + " Discovered " + color.GreenString(repo) + " (" + remotesString + ")"
+
+	if len(remotes) == 0 {
+		remotesString = color.RGB(150, 150, 150).Sprintf("No remotes - no files included")
+	}
+
+	return color.GreenString("+") + " Discovered " + color.GreenString(filepath.ToSlash(repo)) + " (" + remotesString + ")"
 }
