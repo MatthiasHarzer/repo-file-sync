@@ -13,7 +13,7 @@ import (
 )
 
 func uninitializedError(message string) error {
-	return fmt.Errorf("%s\n\ndid you run `repo-file-sync init`?`", message)
+	return fmt.Errorf("%s\n\ndid you run `repo-file-sync init`?", message)
 }
 
 func Setup(baseDir string) (db database.Database, usedBaseDir string, repos <-chan string, cfg *config.Config, globalDiscoveryOptions *repository.DiscoveryOptions, err error) {

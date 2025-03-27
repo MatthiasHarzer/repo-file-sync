@@ -51,7 +51,7 @@ var Command = &cobra.Command{
 			println(color.RedString("Exclude patterns can only be removed from within repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
 			return nil
 		} else {
-			println(color.YellowString("Removing exclude patterns to repository:"))
+			println(color.YellowString("Removing exclude patterns from repository:"))
 			options, err := db.ReadRepoDiscoveryOptions(baseDir)
 			if err != nil {
 				panic(err)
