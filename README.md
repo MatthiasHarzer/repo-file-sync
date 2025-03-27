@@ -12,6 +12,7 @@ This will save the files local only, without the need of a remote repository.
 1. Run `repo-file-sync init`.
 2. Optionally provide a directory on the machine to store the Database-Repository, however the default one is recommended.
 3. Select `y` when asked to set up local only
+4. Follow the instructions to finish the setup.
 
 ### Remote repository
 This will save the files to a remote repository to sync them between multiple devices.
@@ -21,6 +22,8 @@ This will save the files to a remote repository to sync them between multiple de
 4. Provide the URL of the remote repository to store the IDE configurations
     - For that, set up a new repository on GitHub, GitLab, Bitbucket, etc.
     - Copy the URL of the repository and paste it into the prompt
+5. Follow the instructions to finish the setup.
+
 
 ## Usage
 > All following commands support the `--dir <directory>` / `-d <directory>` flag to search and save/restore files in a specific directory. If no directory is specified, the current directory is used.
@@ -35,21 +38,38 @@ This will save the files to a remote repository to sync them between multiple de
 1. Run `repo-file-sync discover` to see which files would be saved or restored.
 
 ## Included / excluded files
+The tool uses a set of global include/exclude patterns to determine which files to save and restore. Additionally, every repository can have its own include/exclude patterns.
 ### Included files
-The tool was originally designed to save and restore IDE configurations, so it includes by default the following patterns:
+Repo File Sync was originally designed to save and restore IDE configurations, so it includes by default the following patterns:
 - Visual Studio Code (`**/.vscode/**`)
 - JetBrains IDEs (`**/.idea/**`)
 > Patterns are evaluated at the repository root, so the pattern `**/.vscode/**` will match all files and folders inside the `.vscode` folder, as well as all `.vscode` folders in subfolders.
 
-### Adding custom patterns
-1. Run `repo-file-sync addpattern <pattern-1>, <pattern-2>, ...` to add one or more Glob-patterns to match files from the repository root.
+#### Adding include patterns
+1. Run `repo-file-sync pattern include add <pattern-1>, <pattern-2>, ...` to add one or more Glob-patterns to match files from the repository root.
 
-### Removing custom patterns
-1. Run `repo-file-sync removepattern <pattern-1>, <pattern-2>, ...` to remove one or more Glob-patterns.
+#### Removing include patterns
+1. Run `repo-file-sync pattern include remove <pattern-1>, <pattern-2>, ...` to remove one or more Glob-patterns.
 
+> To add or remove a global include pattern, use the `--global/-g` flag.
 
 ### Excluded files
+The following patterns are excluded by default, to prevent matching files in some ignored folders:
+- Node modules (`**/node_modules/**`, `node_modules/**`)
+- Virtual environments (`**/*venv/**`, `*venv/**`)
+> Exclude patterns are evaluated **after** include patterns, so a file matching an exclude pattern will always be excluded, even if it matches an include pattern.
+
+#### Adding exclude patterns
+1. Run `repo-file-sync pattern exclude add <pattern-1>, <pattern-2>, ...` to add one or more Glob-patterns to exclude files from the repository root.
+
+#### Removing exclude patterns
+1. Run `repo-file-sync pattern exclude remove <pattern-1>, <pattern-2>, ...` to remove one or more Glob-patterns.
+
+> To add or remove a global exclude pattern, use the `--global/-g` flag.
+
+
+### Excluded folders when searching for repositories
 The tool excludes the following folders when discovering repositories:
 - Node modules (`node_modules`)
 - Virtual environments (`venv`, `.venv`)
-> This does not impact the included files, as they are still saved and restored.
+> This has no impact on the saved and restored files. Use the include and exclude patterns to define which files to save and restore.
