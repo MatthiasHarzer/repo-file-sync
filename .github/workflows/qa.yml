@@ -1,0 +1,38 @@
+name: QA
+
+on: pull_request
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    name: QA
+    strategy:
+      matrix:
+        os: [ubuntu-latest-16core, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Use Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ./go.mod
+      #TODO: Implement QA once tests are available
+      - name: Run QA
+        if: false
+        run: |
+          make qa
+      - name: Build artifacts
+        env:
+          GOMODCACHE: /tmp/go/pkg/mod
+        run: |
+          make build
