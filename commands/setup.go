@@ -34,12 +34,14 @@ func Setup(baseDir string) (database.Database, <-chan string, *config.Config, er
 	}
 
 	if !cfg.LocalOnly {
+		println("Pulling changes from", color.GreenString(cfg.DatabaseRepoURL))
 		err = db.Pull()
 		if err != nil {
 			return nil, nil, nil, err
 		}
 	}
 
+	println("Discovering repositories in", color.GreenString(baseDir))
 	reposCh := repository.DiscoverRepositories(baseDir, cfg.DatabasePath)
 
 	return db, reposCh, cfg, nil
