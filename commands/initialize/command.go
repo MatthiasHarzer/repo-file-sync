@@ -8,12 +8,25 @@ import (
 
 	"repo-file-sync/config"
 	"repo-file-sync/database"
+	"repo-file-sync/repository"
 	"repo-file-sync/util/commandutil"
 	"repo-file-sync/util/fsutil"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
+
+var defaultIncludePatterns = []string{
+	"**/.idea/**",
+	"**/.vscode/**",
+}
+
+var defaultExcludePatterns = []string{
+	"node_modules/**",
+	"**/node_modules/**",
+	"*venv/**",
+	"**/*venv/**",
+}
 
 func readUseLocalOnly() (bool, error) {
 	return commandutil.BooleanPrompt("Do you want to use local only mode?", false)
@@ -58,6 +71,41 @@ func readDatabaseRepositoryURL(c *config.Config) string {
 		break
 	}
 	return text
+}
+
+func readGlobalDiscoveryOptions() (repository.DiscoveryOptions, error) {
+	options := repository.NewDiscoveryOptions()
+
+	color.Set(color.Bold).Println("Include patterns:")
+
+	for _, pattern := range defaultIncludePatterns {
+		fmt.Println(" ", color.GreenString(pattern))
+	}
+	accept, err := commandutil.BooleanPrompt("Do you want to add these default include patterns?", true)
+	if err != nil {
+		return repository.DiscoveryOptions{}, err
+	}
+
+	if accept {
+		options.IncludePatterns.Add(defaultIncludePatterns...)
+	}
+
+	println()
+
+	color.Set(color.Bold).Println("Exclude patterns:")
+	for _, pattern := range defaultExcludePatterns {
+		fmt.Println(" ", color.GreenString(pattern))
+	}
+	accept, err = commandutil.BooleanPrompt("Do you want to add these default exclude patterns?", true)
+	if err != nil {
+		return repository.DiscoveryOptions{}, err
+	}
+
+	if accept {
+		options.ExcludePatterns.Add(defaultExcludePatterns...)
+	}
+
+	return options, nil
 }
 
 var Command = &cobra.Command{
@@ -110,16 +158,30 @@ var Command = &cobra.Command{
 			}
 		}
 
+		var db database.Database
 		if cfg.LocalOnly {
-			_, err = database.InitializeRepoDatabaseFromPath(cfg.DatabasePath)
+			db, err = database.InitializeRepoDatabaseFromPath(cfg.DatabasePath)
 		} else {
-			_, err = database.InitializeRepoDatabaseFromURL(cfg.DatabaseRepoURL, cfg.DatabasePath)
+			db, err = database.InitializeRepoDatabaseFromURL(cfg.DatabaseRepoURL, cfg.DatabasePath)
 		}
 		if err != nil {
 			color.Red("failed to create database repository: %s", err)
 			return
 		}
 		color.Green("Database repository created at %s", cfg.DatabasePath)
+		println("----------------------------------------")
+
+		globalDiscoveryOptions, err := readGlobalDiscoveryOptions()
+		if err != nil {
+			color.Red("failed to read discovery options: %s", err)
+			return
+		}
+
+		err = db.WriteGlobalDiscoveryOptions(globalDiscoveryOptions)
+		if err != nil {
+			color.Red("failed to write global discovery options: %s", err)
+			return
+		}
 
 		err = config.Save(cfg)
 		if err != nil {

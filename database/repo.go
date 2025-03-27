@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -8,7 +9,6 @@ import (
 	"strings"
 
 	"repo-file-sync/repository"
-	"repo-file-sync/set"
 	"repo-file-sync/util/fsutil"
 
 	"github.com/go-git/go-git/v5"
@@ -74,6 +74,11 @@ func (d *Repo) remoteIncludesFile(remote string) string {
 	return fmt.Sprintf("%s/%s/includes", d.Directory, remoteAsPath)
 }
 
+func (d *Repo) remoteExcludeFile(remote string) string {
+	remoteAsPath := remoteURLToDir(remote)
+	return fmt.Sprintf("%s/%s/excludes", d.Directory, remoteAsPath)
+}
+
 func (d *Repo) globalIncludesFile() string {
 	return fmt.Sprintf("%s/.global/includes", d.Directory)
 }
@@ -124,9 +129,23 @@ func (d *Repo) writeRepoIncludes(remote string, includes []string) error {
 		return fmt.Errorf("failed to add %s to git: %s", includesFile, err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", fmt.Sprintf("Update includes for '%s'", remote))
+	return nil
+}
+
+func (d *Repo) writeRepoExcludes(remote string, excludes []string) error {
+	excludesFile := d.remoteExcludeFile(remote)
+
+	err := fsutil.WriteFileLines(excludesFile, excludes)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("git", "add", excludesFile, "--force")
 	cmd.Dir = d.Directory
-	_ = cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to add %s to git: %s", excludesFile, err)
+	}
 
 	return nil
 }
@@ -157,6 +176,17 @@ func (d *Repo) WriteRepoDiscoveryOptions(repo string, options repository.Discove
 		if err != nil {
 			return err
 		}
+
+		err = d.writeRepoExcludes(remote, options.ExcludePatterns.Slice())
+		if err != nil {
+			return err
+		}
+
+		if _, ok := d.changesSinceLastPush[remote]; !ok {
+			d.changesSinceLastPush[remote] = 0
+		}
+
+		d.changesSinceLastPush[remote] += 2
 	}
 	return nil
 }
@@ -209,23 +239,31 @@ func (d *Repo) ReadRepoDiscoveryOptions(repo string) (repository.DiscoveryOption
 		return repository.DiscoveryOptions{}, err
 	}
 
-	var includes []string
+	options := repository.NewDiscoveryOptions()
+
 	for _, remote := range remotes {
 		includesPath := d.remoteIncludesFile(remote)
 		exists, _ := fsutil.Exists(includesPath)
-		if !exists {
-			continue
+		if exists {
+			lines, err := fsutil.ReadFileLines(includesPath)
+			if err != nil {
+				return repository.DiscoveryOptions{}, err
+			}
+			options.IncludePatterns.Add(lines...)
 		}
 
-		lines, err := fsutil.ReadFileLines(includesPath)
-		if err != nil {
-			return repository.DiscoveryOptions{}, err
+		excludePath := d.remoteExcludeFile(remote)
+		exists, _ = fsutil.Exists(excludePath)
+		if exists {
+			lines, err := fsutil.ReadFileLines(excludePath)
+			if err != nil {
+				return repository.DiscoveryOptions{}, err
+			}
+			options.ExcludePatterns.Add(lines...)
 		}
-
-		includes = append(includes, lines...)
 	}
 
-	return repository.NewDiscoveryOptions(includes), nil
+	return options, nil
 }
 
 func (d *Repo) readGlobalIncludes() ([]string, error) {
@@ -255,27 +293,29 @@ func (d *Repo) globalOptionsExists() bool {
 
 func (d *Repo) ReadGlobalDiscoveryOptions() (repository.DiscoveryOptions, error) {
 	if !d.globalOptionsExists() {
-		options := repository.DefaultGlobalDiscoveryOptions()
-		err := d.WriteGlobalDiscoveryOptions(options)
-		if err != nil {
-			return repository.DiscoveryOptions{}, err
-		}
-		return options, nil
+		return repository.DiscoveryOptions{}, errors.New("failed to read global discovery options")
 	}
 	includeLines, inclErr := d.readGlobalIncludes()
+	excludesLines, exclErr := d.readGlobalExcludes()
 
-	if inclErr != nil {
-		return repository.DiscoveryOptions{}, fmt.Errorf("failed to read global includes")
+	if inclErr != nil || exclErr != nil {
+		return repository.DiscoveryOptions{}, fmt.Errorf("failed to read global discovery options")
 	}
 
-	options := repository.DefaultGlobalDiscoveryOptions()
-	options.IncludePatterns = set.FromSlice(includeLines)
+	options := repository.NewDiscoveryOptions()
+	options.IncludePatterns.Add(includeLines...)
+	options.ExcludePatterns.Add(excludesLines...)
 
 	return options, nil
 }
 
 func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) error {
 	err := fsutil.WriteFileLines(d.globalIncludesFile(), config.IncludePatterns.Slice())
+	if err != nil {
+		return err
+	}
+
+	err = fsutil.WriteFileLines(d.globalExcludesFile(), config.ExcludePatterns.Slice())
 	if err != nil {
 		return err
 	}
@@ -294,14 +334,14 @@ func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) e
 		return fmt.Errorf("failed to add %s to git: %s", d.globalExcludesFile(), err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", "Update global includes")
+	cmd = exec.Command("git", "commit", "-m", "Update global includes/excludes")
 	cmd.Dir = d.Directory
 	_ = cmd.Run()
 
 	return nil
 }
 
-func (d *Repo) Push() error {
+func (d *Repo) commitRepoChanges() error {
 	if len(d.changesSinceLastPush) == 0 {
 		return nil
 	}
@@ -343,7 +383,16 @@ func (d *Repo) Push() error {
 
 	d.changesSinceLastPush = make(map[string]int)
 
-	cmd = exec.Command("git", "push")
+	return nil
+}
+
+func (d *Repo) Push() error {
+	err := d.commitRepoChanges()
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("git", "push")
 	cmd.Dir = d.Directory
 	return cmd.Run()
 }
