@@ -376,10 +376,7 @@ func (d *Repo) commitRepoChanges() error {
 
 	cmd := exec.Command("git", "commit", "-m", title, "-m", description)
 	cmd.Dir = d.Directory
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("failed to commit changes: %s", err)
-	}
+	_ = cmd.Run() // ignore errors, as they could occur if there are no changes to commit, event if changesSinceLastPush is not empty
 
 	d.changesSinceLastPush = make(map[string]int)
 
