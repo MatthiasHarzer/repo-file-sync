@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"repo-file-sync/commands/discover"
 	"repo-file-sync/commands/initialize"
 	"repo-file-sync/commands/pattern"
@@ -10,6 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+var version = "unknown"
 
 func init() {
 	command.AddCommand(pattern.Command)
@@ -22,8 +26,11 @@ func init() {
 
 var command = &cobra.Command{
 	Use:   "repo-file-sync",
-	Short: "Sync IDE config files",
-	Long:  "Sync IDE config files",
+	Short: "Sync any repo file",
+	Long:  "Sync any repo file",
+	Run: func(c *cobra.Command, args []string) {
+		fmt.Println("repo-file-sync version", version)
+	},
 }
 
 func main() {

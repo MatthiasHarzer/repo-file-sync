@@ -41,7 +41,7 @@ jobs:
       - name: Build artifacts
         if: ${{ steps.get_next_version.outputs.hasNextVersion == 'true' }}
         run: |
-          make build
+          make build BUILD_VERSION=${{ steps.get_next_version.outputs.version }}
       - name: Release new version
         if: ${{ steps.get_next_version.outputs.hasNextVersion == 'true' }}
         uses: ncipollo/release-action@v1

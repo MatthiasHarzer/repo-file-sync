@@ -5,7 +5,11 @@ else
 OPEN := xdg-open
 endif
 
-build:
-	@GOOS=windows GOARCH=amd64 go build -o ./bin/repo-file-sync.exe ./main.go
+BUILD_VERSION ?= "unknown"
 
-	@GOOS=linux GOARCH=amd64 go build -o ./bin/repo-file-sync ./main.go
+build:
+	@GOOS=windows GOARCH=amd64 go build -o ./bin/repo-file-sync.exe -ldflags "-X main.version=$(BUILD_VERSION)" ./main.go
+
+	@GOOS=linux GOARCH=amd64 go build -o ./bin/repo-file-sync -ldflags "-X main.version=$(BUILD_VERSION)" ./main.go
+
+.PHONY: build
