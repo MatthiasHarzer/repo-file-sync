@@ -1,7 +1,7 @@
 package list
 
 import (
-	"repo-file-sync/commands"
+	"github.com/MatthiasHarzer/repo-file-sync/commands"
 
 	"github.com/fatih/color"
 	"github.com/go-git/go-git/v5"

@@ -1,4 +1,4 @@
-module repo-file-sync
+module github.com/MatthiasHarzer/repo-file-sync
 
 go 1.24
 

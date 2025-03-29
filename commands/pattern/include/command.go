@@ -3,9 +3,9 @@ package include
 import (
 	"errors"
 
-	"repo-file-sync/commands/pattern/include/add"
-	"repo-file-sync/commands/pattern/include/list"
-	"repo-file-sync/commands/pattern/include/remove"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern/include/add"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern/include/list"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern/include/remove"
 
 	"github.com/spf13/cobra"
 )

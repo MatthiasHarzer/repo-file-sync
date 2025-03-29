@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"repo-file-sync/config"
-	"repo-file-sync/database"
-	"repo-file-sync/repository"
+	"github.com/MatthiasHarzer/repo-file-sync/config"
+	"github.com/MatthiasHarzer/repo-file-sync/database"
+	"github.com/MatthiasHarzer/repo-file-sync/repository"
 
 	"github.com/fatih/color"
 )

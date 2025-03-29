@@ -1,8 +1,8 @@
 package add
 
 import (
-	"repo-file-sync/commands"
-	"repo-file-sync/repository"
+	"github.com/MatthiasHarzer/repo-file-sync/commands"
+	"github.com/MatthiasHarzer/repo-file-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/go-git/go-git/v5"

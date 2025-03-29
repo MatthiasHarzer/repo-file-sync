@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 
-	"repo-file-sync/commands/discover"
-	"repo-file-sync/commands/initialize"
-	"repo-file-sync/commands/pattern"
-	"repo-file-sync/commands/pull"
-	"repo-file-sync/commands/restore"
-	"repo-file-sync/commands/save"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/discover"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/initialize"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pull"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/restore"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/save"
 
 	"github.com/spf13/cobra"
 )

@@ -3,8 +3,8 @@ package pattern
 import (
 	"errors"
 
-	"repo-file-sync/commands/pattern/exclude"
-	"repo-file-sync/commands/pattern/include"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern/exclude"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern/include"
 
 	"github.com/spf13/cobra"
 )

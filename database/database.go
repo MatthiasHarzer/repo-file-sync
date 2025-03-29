@@ -1,6 +1,6 @@
 package database
 
-import "repo-file-sync/repository"
+import "github.com/MatthiasHarzer/repo-file-sync/repository"
 
 type Database interface {
 	WriteRepoFile(repo string, file repository.File) error

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"repo-file-sync/set"
+	"github.com/MatthiasHarzer/repo-file-sync/set"
 )
 
 type DiscoveryOptions struct {

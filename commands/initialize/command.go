@@ -6,11 +6,11 @@ import (
 	"net/url"
 	"os"
 
-	"repo-file-sync/config"
-	"repo-file-sync/database"
-	"repo-file-sync/repository"
-	"repo-file-sync/util/commandutil"
-	"repo-file-sync/util/fsutil"
+	"github.com/MatthiasHarzer/repo-file-sync/config"
+	"github.com/MatthiasHarzer/repo-file-sync/database"
+	"github.com/MatthiasHarzer/repo-file-sync/repository"
+	"github.com/MatthiasHarzer/repo-file-sync/util/commandutil"
+	"github.com/MatthiasHarzer/repo-file-sync/util/fsutil"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

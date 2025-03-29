@@ -3,7 +3,7 @@ package commands
 import (
 	"path/filepath"
 
-	"repo-file-sync/repository"
+	"github.com/MatthiasHarzer/repo-file-sync/repository"
 
 	"github.com/fatih/color"
 )

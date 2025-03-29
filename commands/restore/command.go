@@ -3,7 +3,7 @@ package restore
 import (
 	"fmt"
 
-	"repo-file-sync/commands"
+	"github.com/MatthiasHarzer/repo-file-sync/commands"
 
 	"github.com/fatih/color"
 	"github.com/otiai10/copy"

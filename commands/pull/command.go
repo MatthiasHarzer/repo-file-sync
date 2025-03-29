@@ -3,8 +3,8 @@ package pull
 import (
 	"errors"
 
-	"repo-file-sync/config"
-	"repo-file-sync/database"
+	"github.com/MatthiasHarzer/repo-file-sync/config"
+	"github.com/MatthiasHarzer/repo-file-sync/database"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

@@ -3,9 +3,9 @@ package exclude
 import (
 	"errors"
 
-	"repo-file-sync/commands/pattern/exclude/add"
-	"repo-file-sync/commands/pattern/exclude/list"
-	"repo-file-sync/commands/pattern/exclude/remove"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern/exclude/add"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern/exclude/list"
+	"github.com/MatthiasHarzer/repo-file-sync/commands/pattern/exclude/remove"
 
 	"github.com/spf13/cobra"
 )

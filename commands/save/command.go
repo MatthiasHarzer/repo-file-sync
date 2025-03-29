@@ -1,8 +1,8 @@
 package save
 
 import (
-	"repo-file-sync/commands"
-	"repo-file-sync/repository"
+	"github.com/MatthiasHarzer/repo-file-sync/commands"
+	"github.com/MatthiasHarzer/repo-file-sync/repository"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"repo-file-sync/util/fsutil"
+	"github.com/MatthiasHarzer/repo-file-sync/util/fsutil"
 )
 
 var (

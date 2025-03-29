@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"repo-file-sync/repository"
-	"repo-file-sync/util/fsutil"
+	"github.com/MatthiasHarzer/repo-file-sync/repository"
+	"github.com/MatthiasHarzer/repo-file-sync/util/fsutil"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/otiai10/copy"
