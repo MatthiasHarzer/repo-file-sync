@@ -1,12 +1,9 @@
 package restore
 
 import (
-	"fmt"
-
 	"github.com/MatthiasHarzer/repo-file-sync/commands"
 
 	"github.com/fatih/color"
-	"github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 )
 
@@ -38,8 +35,7 @@ var Command = &cobra.Command{
 			}
 
 			for file := range files {
-				repoFile := fmt.Sprintf("%s/%s", repo, file.PathFromRepoRoot)
-				err := copy.Copy(file.AbsolutePath, repoFile)
+				err := db.RestoreRepoFile(repo, file)
 				if err != nil {
 					color.Red("Failed to restore files: %s", err)
 					continue

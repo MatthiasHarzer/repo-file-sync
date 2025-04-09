@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/MatthiasHarzer/repo-file-sync/repository"
+	"github.com/MatthiasHarzer/repo-file-sync/set"
 	"github.com/MatthiasHarzer/repo-file-sync/util/fsutil"
 
 	"github.com/go-git/go-git/v5"
@@ -25,6 +26,66 @@ func remoteURLToDir(remoteURL string) string {
 	sanitized = strings.Trim(sanitized, "/")
 
 	return sanitized
+}
+
+var folderReplacements = map[string]string{
+	".git": "$.git",
+}
+
+func encodeFolderName(name string) string {
+	if replacement, ok := folderReplacements[name]; ok {
+		return replacement
+	}
+	return name
+}
+
+func decodeFolderName(name string) string {
+	for original, replacement := range folderReplacements {
+		if name == replacement {
+			return original
+		}
+	}
+	return name
+}
+
+func splitPath(path string) []string {
+	dir, file := filepath.Split(path)
+	if dir == "" {
+		return []string{file}
+	}
+	return append(splitPath(filepath.Clean(dir)), file)
+}
+
+func encodePath(path string) string {
+	path = filepath.Clean(filepath.ToSlash(path))
+	splits := splitPath(path)
+
+	for i, part := range splits {
+		splits[i] = encodeFolderName(part)
+	}
+
+	return filepath.ToSlash(filepath.Join(splits...))
+}
+
+func decodePath(path string) string {
+	path = filepath.Clean(filepath.ToSlash(path))
+	splits := splitPath(path)
+
+	for i, part := range splits {
+		splits[i] = decodeFolderName(part)
+	}
+
+	return filepath.ToSlash(filepath.Join(splits...))
+}
+
+func addReplacementPatterns(patterns *set.Set[string]) {
+	for pattern := range *patterns {
+		for key, value := range folderReplacements {
+			if strings.Contains(pattern, key) {
+				patterns.Add(strings.ReplaceAll(pattern, key, value))
+			}
+		}
+	}
 }
 
 type Repo struct {
@@ -88,7 +149,7 @@ func (d *Repo) globalExcludesFile() string {
 }
 
 func (d *Repo) writeRemoteRepoFile(remote string, file repository.File) error {
-	dbFilePath := fmt.Sprintf("%s/%s", d.remoteFilesDir(remote), file.PathFromRepoRoot)
+	dbFilePath := fmt.Sprintf("%s/%s", d.remoteFilesDir(remote), encodePath(file.PathFromRepoRoot))
 	relativePath, err := filepath.Rel(d.Directory, dbFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to get relative path for %s: %s", dbFilePath, err)
@@ -165,6 +226,11 @@ func (d *Repo) WriteRepoFile(repo string, file repository.File) error {
 	return nil
 }
 
+func (d *Repo) RestoreRepoFile(repo string, file repository.File) error {
+	repoFile := fmt.Sprintf("%s/%s", repo, decodePath(file.PathFromRepoRoot))
+	return copy.Copy(file.AbsolutePath, repoFile)
+}
+
 func (d *Repo) WriteRepoDiscoveryOptions(repo string, options repository.DiscoveryOptions) error {
 	remotes, err := repository.ReadRemotes(repo)
 	if err != nil {
@@ -202,7 +268,11 @@ func (d *Repo) getComputedRepoDiscoveryOptions(repo string) (repository.Discover
 		return repository.DiscoveryOptions{}, err
 	}
 
-	return globalOptions.Merge(repoOptions), nil
+	options := globalOptions.Merge(repoOptions)
+
+	addReplacementPatterns(&options.IncludePatterns)
+	addReplacementPatterns(&options.ExcludePatterns)
+	return options, nil
 }
 
 func (d *Repo) ReadRepoFiles(repo string) (<-chan repository.File, error) {
