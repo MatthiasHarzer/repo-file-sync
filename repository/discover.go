@@ -93,7 +93,7 @@ func DiscoverRepositoryFiles(repo string, config DiscoveryOptions) <-chan File {
 				}
 
 				return nil
-			}, doublestar.WithFilesOnly())
+			}, doublestar.WithFilesOnly(), doublestar.WithNoFollow())
 		}
 	}()
 
