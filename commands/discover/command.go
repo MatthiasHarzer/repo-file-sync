@@ -43,7 +43,7 @@ var Command = &cobra.Command{
 			for file := range files {
 				if file.Size > config.MaxFileSize {
 					maxFileSizeStr := units.ConvertBytesToHumanReadable(config.MaxFileSize)
-					println(color.RedString("  -"), fmt.Sprintf("Skipping file as it exceeds the maximum size (%s):", maxFileSizeStr), color.RedString(file.PathFromRepoRoot))
+					println(color.YellowString("  -"), "Skipping file", color.YellowString(file.PathFromRepoRoot), fmt.Sprintf("as it exceeds the maximum file size of %s", maxFileSizeStr))
 					continue
 				}
 				println(color.BlueString("  +"), "File discovered:", color.BlueString(file.PathFromRepoRoot))
