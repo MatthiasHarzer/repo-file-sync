@@ -60,7 +60,7 @@ var Command = &cobra.Command{
 
 				println(color.BlueString("  +"), "File saved:", color.BlueString(file.PathFromRepoRoot))
 			}
-			err = db.RemoveNonExistingRepoFies(repo, existingFiles)
+			err = db.RemoveNonExistingRepoFiles(repo, existingFiles)
 			if err != nil {
 				println(color.RedString("Failed to remove non-existing files from database: %s", err))
 				return err

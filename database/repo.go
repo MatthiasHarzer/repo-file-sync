@@ -412,7 +412,7 @@ func (d *Repo) WriteGlobalDiscoveryOptions(config repository.DiscoveryOptions) e
 	return nil
 }
 
-func (d *Repo) RemoveNonExistingRepoFies(repo string, existingFiles []repository.File) error {
+func (d *Repo) RemoveNonExistingRepoFiles(repo string, existingFiles []repository.File) error {
 	options, err := d.getComputedRepoDiscoveryOptions(repo)
 	if err != nil {
 		return err
