@@ -1,9 +1,12 @@
 package save
 
 import (
+	"fmt"
+
 	"github.com/MatthiasHarzer/repo-file-sync/commands"
 	"github.com/MatthiasHarzer/repo-file-sync/config"
 	"github.com/MatthiasHarzer/repo-file-sync/repository"
+	"github.com/MatthiasHarzer/repo-file-sync/util/units"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -43,7 +46,8 @@ var Command = &cobra.Command{
 			var existingFiles []repository.File
 			for file := range files {
 				if file.Size > config.MaxFileSize {
-					println(color.RedString("  -"), "Skipping file as it exceeds the maximum size (5MB):", color.RedString(file.PathFromRepoRoot))
+					maxFileSizeStr := units.ConvertBytesToHumanReadable(config.MaxFileSize)
+					println(color.RedString("  -"), fmt.Sprintf("Skipping file as it exceeds the maximum size (%s):", maxFileSizeStr), color.RedString(file.PathFromRepoRoot))
 					continue
 				}
 
