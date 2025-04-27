@@ -10,6 +10,7 @@ type Database interface {
 	ReadRepoDiscoveryOptions(repo string) (repository.DiscoveryOptions, error)
 	WriteGlobalDiscoveryOptions(globalConfig repository.DiscoveryOptions) error
 	ReadGlobalDiscoveryOptions() (repository.DiscoveryOptions, error)
+	RemoveNonExistingRepoFiles(repo string, existingFiles []repository.File) error
 	Push() error
 	Pull() error
 }

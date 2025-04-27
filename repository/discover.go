@@ -87,9 +87,15 @@ func DiscoverRepositoryFiles(repo string, config DiscoveryOptions) <-chan File {
 					}
 				}
 
+				info, err := d.Info()
+				if err != nil {
+					return err
+				}
+
 				files <- File{
 					AbsolutePath:     absolutePath,
 					PathFromRepoRoot: path,
+					Size:             info.Size(),
 				}
 
 				return nil
