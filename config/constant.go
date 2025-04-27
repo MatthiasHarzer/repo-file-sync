@@ -11,6 +11,7 @@ var (
 	StoragePath             string
 	File                    string
 	DefaultDatabaseRepoPath string
+	MaxFileSize             int64 = 5 * 1024 * 1024 // 5 MB
 )
 
 func init() {

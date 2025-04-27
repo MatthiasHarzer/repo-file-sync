@@ -2,6 +2,7 @@ package save
 
 import (
 	"github.com/MatthiasHarzer/repo-file-sync/commands"
+	"github.com/MatthiasHarzer/repo-file-sync/config"
 	"github.com/MatthiasHarzer/repo-file-sync/repository"
 
 	"github.com/fatih/color"
@@ -39,7 +40,14 @@ var Command = &cobra.Command{
 
 			files := repository.DiscoverRepositoryFiles(repo, mergedOptions)
 
+			var existingFiles []repository.File
 			for file := range files {
+				if file.Size > config.MaxFileSize {
+					println(color.RedString("  -"), "Skipping file as it exceeds the maximum size (5MB):", color.RedString(file.PathFromRepoRoot))
+					continue
+				}
+
+				existingFiles = append(existingFiles, file)
 				err := db.WriteRepoFile(repo, file)
 				if err != nil {
 					color.Red("Failed to write %s to database: %s", file, err)
@@ -48,7 +56,13 @@ var Command = &cobra.Command{
 
 				println(color.BlueString("  +"), "File saved:", color.BlueString(file.PathFromRepoRoot))
 			}
+			err = db.RemoveNonExistingRepoFies(repo, existingFiles)
+			if err != nil {
+				println(color.RedString("Failed to remove non-existing files from database: %s", err))
+				return err
+			}
 		}
+
 		return commands.Push(cfg, db)
 	},
 }

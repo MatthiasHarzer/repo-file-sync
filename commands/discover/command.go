@@ -2,6 +2,7 @@ package discover
 
 import (
 	"github.com/MatthiasHarzer/repo-file-sync/commands"
+	"github.com/MatthiasHarzer/repo-file-sync/config"
 	"github.com/MatthiasHarzer/repo-file-sync/repository"
 
 	"github.com/fatih/color"
@@ -37,6 +38,10 @@ var Command = &cobra.Command{
 			files := repository.DiscoverRepositoryFiles(repo, mergedOptions)
 
 			for file := range files {
+				if file.Size > config.MaxFileSize {
+					println(color.RedString("  -"), "Skipping file as it exceeds the maximum size (5MB):", color.RedString(file.PathFromRepoRoot))
+					continue
+				}
 				println(color.BlueString("  +"), "File discovered:", color.BlueString(file.PathFromRepoRoot))
 			}
 		}
