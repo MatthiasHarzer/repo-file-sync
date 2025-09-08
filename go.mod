@@ -3,7 +3,7 @@ module github.com/MatthiasHarzer/repo-file-sync
 go 1.24
 
 require (
-	github.com/bmatcuk/doublestar/v4 v4.8.1
+	github.com/bmatcuk/doublestar/v4 v4.9.1
 	github.com/fatih/color v1.18.0
 	github.com/go-git/go-git/v5 v5.16.2
 	github.com/otiai10/copy v1.14.1
