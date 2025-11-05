@@ -36,6 +36,12 @@ func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 
 	go func() {
 		defer close(repos)
+
+		if isRepo(base) {
+			repos <- base
+			return
+		}
+
 		for len(queue) > 0 {
 			dir := queue[0]
 			queue = queue[1:]
@@ -45,26 +51,26 @@ func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 				continue
 			}
 
-			if shouldSkipPath(dir, repoSearchIgnoreFolders) {
-				continue
-			}
-
-			if filepath.ToSlash(dir) == filepath.ToSlash(ignoredRepo) {
-				continue
-			}
-
-			if isRepo(dir) {
-				repos <- dir
-				continue
-			}
-
 			for _, entry := range entries {
 				if !entry.IsDir() {
 					continue
 				}
-				fullPath := filepath.Join(dir, entry.Name())
+				subDir := filepath.Join(dir, entry.Name())
 
-				queue = append(queue, fullPath)
+				if shouldSkipPath(subDir, repoSearchIgnoreFolders) {
+					continue
+				}
+
+				if filepath.ToSlash(subDir) == filepath.ToSlash(ignoredRepo) {
+					continue
+				}
+
+				if isRepo(subDir) {
+					repos <- subDir
+					continue
+				}
+
+				queue = append(queue, subDir)
 			}
 		}
 	}()
