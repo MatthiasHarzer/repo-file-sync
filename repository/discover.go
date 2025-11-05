@@ -25,12 +25,23 @@ func shouldSkipPath(path string, excludedFolders []string) bool {
 	return false
 }
 
-func DiscoverRepositories(base, ignoredRepo string) <-chan string {
+func isRepo(path string) bool {
+	_, err := git.PlainOpen(path)
+	return err == nil
+}
+
+func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	queue := []string{base}
 	repos := make(chan string)
 
 	go func() {
 		defer close(repos)
+
+		if isRepo(base) {
+			repos <- base
+			return
+		}
+
 		for len(queue) > 0 {
 			dir := queue[0]
 			queue = queue[1:]
@@ -44,27 +55,72 @@ func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 				if !entry.IsDir() {
 					continue
 				}
-				fullPath := filepath.Join(dir, entry.Name())
+				subDir := filepath.Join(dir, entry.Name())
 
-				if shouldSkipPath(fullPath, repoSearchIgnoreFolders) {
+				if shouldSkipPath(subDir, repoSearchIgnoreFolders) {
 					continue
 				}
 
-				if filepath.ToSlash(fullPath) == filepath.ToSlash(ignoredRepo) {
+				if filepath.ToSlash(subDir) == filepath.ToSlash(ignoredRepo) {
 					continue
 				}
 
-				if entry.Name() == ".git" {
-					_, err := git.PlainOpen(dir)
-					if err != nil {
-						continue
-					}
-					repos <- dir
+				if isRepo(subDir) {
+					repos <- subDir
 					continue
 				}
 
-				queue = append(queue, fullPath)
+				queue = append(queue, subDir)
 			}
+		}
+	}()
+
+	return repos
+}
+
+func discoverParentRepository(base, ignoredRepo string) (string, bool) {
+	currentDir := base
+	for {
+		if filepath.ToSlash(currentDir) == filepath.ToSlash(ignoredRepo) {
+			return "", false
+		}
+
+		if isRepo(currentDir) {
+			return currentDir, true
+		}
+
+		parentDir := filepath.Dir(currentDir)
+		if parentDir == currentDir {
+			break
+		}
+		currentDir = parentDir
+	}
+	return "", false
+}
+
+func DiscoverRepositories(base, ignoredRepo string) <-chan string {
+	repos := make(chan string)
+
+	go func() {
+		defer close(repos)
+
+		emitted := make(map[string]struct{})
+
+		parentRepo, foundParentRepo := discoverParentRepository(base, ignoredRepo)
+		if foundParentRepo {
+			normalized := filepath.ToSlash(parentRepo)
+			emitted[normalized] = struct{}{}
+			repos <- parentRepo
+		}
+
+		childRepos := discoverChildRepositories(base, ignoredRepo)
+		for repo := range childRepos {
+			normalized := filepath.ToSlash(repo)
+			if _, exists := emitted[normalized]; exists {
+				continue
+			}
+			emitted[normalized] = struct{}{}
+			repos <- repo
 		}
 	}()
 
