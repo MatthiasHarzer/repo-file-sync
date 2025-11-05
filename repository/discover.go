@@ -26,12 +26,7 @@ func shouldSkipPath(path string, excludedFolders []string) bool {
 }
 
 func isRepo(path string) bool {
-	gitDir := filepath.Join(path, ".git")
-	info, err := os.Stat(gitDir)
-	if err != nil || !info.IsDir() {
-		return false
-	}
-	_, err = git.PlainOpen(path)
+	_, err := git.PlainOpen(path)
 	return err == nil
 }
 
