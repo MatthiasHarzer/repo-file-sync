@@ -104,13 +104,22 @@ func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 	go func() {
 		defer close(repos)
 
+		emitted := make(map[string]struct{})
+
 		parentRepo, foundParentRepo := discoverParentRepository(base, ignoredRepo)
 		if foundParentRepo {
+			normalized := filepath.ToSlash(parentRepo)
+			emitted[normalized] = struct{}{}
 			repos <- parentRepo
 		}
 
 		childRepos := discoverChildRepositories(base, ignoredRepo)
 		for repo := range childRepos {
+			normalized := filepath.ToSlash(repo)
+			if _, exists := emitted[normalized]; exists {
+				continue
+			}
+			emitted[normalized] = struct{}{}
 			repos <- repo
 		}
 	}()
