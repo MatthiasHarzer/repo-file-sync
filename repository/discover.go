@@ -50,28 +50,24 @@ func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 				continue
 			}
 
+			if shouldSkipPath(dir, repoSearchIgnoreFolders) {
+				continue
+			}
+
+			if filepath.ToSlash(dir) == filepath.ToSlash(ignoredRepo) {
+				continue
+			}
+
+			if isRepo(dir) {
+				repos <- dir
+				continue
+			}
+
 			for _, entry := range entries {
 				if !entry.IsDir() {
 					continue
 				}
 				fullPath := filepath.Join(dir, entry.Name())
-
-				if shouldSkipPath(fullPath, repoSearchIgnoreFolders) {
-					continue
-				}
-
-				if filepath.ToSlash(fullPath) == filepath.ToSlash(ignoredRepo) {
-					continue
-				}
-
-				if entry.Name() == ".git" {
-					_, err := git.PlainOpen(dir)
-					if err != nil {
-						continue
-					}
-					repos <- dir
-					continue
-				}
 
 				queue = append(queue, fullPath)
 			}
