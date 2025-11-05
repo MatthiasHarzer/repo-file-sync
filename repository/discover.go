@@ -25,7 +25,17 @@ func shouldSkipPath(path string, excludedFolders []string) bool {
 	return false
 }
 
-func DiscoverRepositories(base, ignoredRepo string) <-chan string {
+func isRepo(path string) bool {
+	gitDir := filepath.Join(path, ".git")
+	info, err := os.Stat(gitDir)
+	if err != nil || !info.IsDir() {
+		return false
+	}
+	_, err = git.PlainOpen(path)
+	return err == nil
+}
+
+func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	queue := []string{base}
 	repos := make(chan string)
 
@@ -65,6 +75,46 @@ func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 
 				queue = append(queue, fullPath)
 			}
+		}
+	}()
+
+	return repos
+}
+
+func discoverParentRepository(base, ignoredRepo string) *string {
+	currentDir := base
+	for {
+		if filepath.ToSlash(currentDir) == filepath.ToSlash(ignoredRepo) {
+			return nil
+		}
+
+		if isRepo(currentDir) {
+			return &currentDir
+		}
+
+		parentDir := filepath.Dir(currentDir)
+		if parentDir == currentDir {
+			break
+		}
+		currentDir = parentDir
+	}
+	return nil
+}
+
+func DiscoverRepositories(base, ignoredRepo string) <-chan string {
+	repos := make(chan string)
+
+	go func() {
+		defer close(repos)
+
+		parentRepo := discoverParentRepository(base, ignoredRepo)
+		if parentRepo != nil {
+			repos <- *parentRepo
+		}
+
+		childRepos := discoverChildRepositories(base, ignoredRepo)
+		for repo := range childRepos {
+			repos <- repo
 		}
 	}()
 
