@@ -1,12 +1,17 @@
 package set
 
-type Set[T comparable] map[T]bool
+import (
+	"cmp"
+	"slices"
+)
 
-func New[T comparable]() Set[T] {
+type Set[T cmp.Ordered] map[T]bool
+
+func New[T cmp.Ordered]() Set[T] {
 	return make(Set[T])
 }
 
-func FromSlice[T comparable](slice []T) Set[T] {
+func FromSlice[T cmp.Ordered](slice []T) Set[T] {
 	s := New[T]()
 	for _, value := range slice {
 		s[value] = true
@@ -49,5 +54,6 @@ func (s Set[T]) Slice() []T {
 	for value := range s {
 		slice = append(slice, value)
 	}
+	slices.Sort(slice)
 	return slice
 }
