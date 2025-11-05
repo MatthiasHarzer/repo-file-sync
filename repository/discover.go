@@ -72,15 +72,15 @@ func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	return repos
 }
 
-func discoverParentRepository(base, ignoredRepo string) *string {
+func discoverParentRepository(base, ignoredRepo string) (string, bool) {
 	currentDir := filepath.Dir(base)
 	for {
 		if filepath.ToSlash(currentDir) == filepath.ToSlash(ignoredRepo) {
-			return nil
+			return "", false
 		}
 
 		if isRepo(currentDir) {
-			return &currentDir
+			return currentDir, true
 		}
 
 		parentDir := filepath.Dir(currentDir)
@@ -89,7 +89,7 @@ func discoverParentRepository(base, ignoredRepo string) *string {
 		}
 		currentDir = parentDir
 	}
-	return nil
+	return "", false
 }
 
 func DiscoverRepositories(base, ignoredRepo string) <-chan string {
@@ -98,9 +98,9 @@ func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 	go func() {
 		defer close(repos)
 
-		parentRepo := discoverParentRepository(base, ignoredRepo)
-		if parentRepo != nil {
-			repos <- *parentRepo
+		parentRepo, foundParentRepo := discoverParentRepository(base, ignoredRepo)
+		if foundParentRepo {
+			repos <- parentRepo
 		}
 
 		childRepos := discoverChildRepositories(base, ignoredRepo)
