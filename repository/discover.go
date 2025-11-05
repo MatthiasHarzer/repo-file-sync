@@ -79,7 +79,7 @@ func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 }
 
 func discoverParentRepository(base, ignoredRepo string) (string, bool) {
-	currentDir := filepath.Dir(base)
+	currentDir := base
 	for {
 		if filepath.ToSlash(currentDir) == filepath.ToSlash(ignoredRepo) {
 			return "", false
