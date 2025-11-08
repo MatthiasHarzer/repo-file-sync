@@ -30,6 +30,25 @@ func isRepo(path string) bool {
 	return err == nil
 }
 
+// FindRepositoryRoot searches for a git repository starting from the given path
+// and traversing up the directory tree. Returns the repository root path and true
+// if a repository is found, otherwise returns empty string and false.
+func FindRepositoryRoot(path string) (string, bool) {
+	currentDir := path
+	for {
+		if isRepo(currentDir) {
+			return currentDir, true
+		}
+
+		parentDir := filepath.Dir(currentDir)
+		if parentDir == currentDir {
+			break
+		}
+		currentDir = parentDir
+	}
+	return "", false
+}
+
 func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	queue := []string{base}
 	repos := make(chan string)

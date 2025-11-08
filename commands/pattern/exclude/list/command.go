@@ -2,9 +2,9 @@ package list
 
 import (
 	"github.com/MatthiasHarzer/repo-file-sync/commands"
+	"github.com/MatthiasHarzer/repo-file-sync/repository"
 
 	"github.com/fatih/color"
-	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 )
 
@@ -23,13 +23,12 @@ var Command = &cobra.Command{
 	Short: "List all patterns to exclude",
 	Long:  "List all patterns to exclude",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db, _, _, _, globalDiscoveryOptions, err := commands.Setup(baseDir)
+		db, usedBaseDir, _, _, globalDiscoveryOptions, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}
 
-		_, err = git.PlainOpen(baseDir)
-		isRepo := err == nil
+		repoRoot, isRepo := repository.FindRepositoryRoot(usedBaseDir)
 
 		if isGlobalPattern {
 			println(color.YellowString("Global exclude patterns:"))
@@ -41,7 +40,7 @@ var Command = &cobra.Command{
 			return nil
 		} else {
 			println(color.YellowString("Repository exclude patterns:"))
-			options, err := db.ReadRepoDiscoveryOptions(baseDir)
+			options, err := db.ReadRepoDiscoveryOptions(repoRoot)
 			if err != nil {
 				panic(err)
 			}
