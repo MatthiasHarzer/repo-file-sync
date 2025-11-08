@@ -35,7 +35,7 @@ var Command = &cobra.Command{
 			panic(err)
 		}
 
-		repoRoot, isRepo := repository.FindRepositoryRoot(usedBaseDir)
+		repoRoot, isRepo := repository.DiscoverParentRepository(usedBaseDir, "")
 
 		if isGlobalPattern {
 			println(color.YellowString("Removing global include patterns:"))

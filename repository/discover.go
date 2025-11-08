@@ -30,25 +30,6 @@ func isRepo(path string) bool {
 	return err == nil
 }
 
-// FindRepositoryRoot searches for a git repository starting from the given path
-// and traversing up the directory tree. Returns the repository root path and true
-// if a repository is found, otherwise returns empty string and false.
-func FindRepositoryRoot(path string) (string, bool) {
-	currentDir := path
-	for {
-		if isRepo(currentDir) {
-			return currentDir, true
-		}
-
-		parentDir := filepath.Dir(currentDir)
-		if parentDir == currentDir {
-			break
-		}
-		currentDir = parentDir
-	}
-	return "", false
-}
-
 func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	queue := []string{base}
 	repos := make(chan string)
@@ -97,7 +78,11 @@ func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	return repos
 }
 
-func discoverParentRepository(base, ignoredRepo string) (string, bool) {
+// DiscoverParentRepository searches for a git repository starting from the given path
+// and traversing up the directory tree. Returns the repository root path and true
+// if a repository is found, otherwise returns empty string and false.
+// The ignoredRepo parameter can be used to exclude a specific repository path from the search.
+func DiscoverParentRepository(base, ignoredRepo string) (string, bool) {
 	currentDir := base
 	for {
 		if filepath.ToSlash(currentDir) == filepath.ToSlash(ignoredRepo) {
@@ -125,7 +110,7 @@ func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 
 		emitted := make(map[string]struct{})
 
-		parentRepo, foundParentRepo := discoverParentRepository(base, ignoredRepo)
+		parentRepo, foundParentRepo := DiscoverParentRepository(base, ignoredRepo)
 		if foundParentRepo {
 			normalized := filepath.ToSlash(parentRepo)
 			emitted[normalized] = struct{}{}
