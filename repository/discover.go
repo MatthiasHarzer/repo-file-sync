@@ -30,6 +30,22 @@ func isRepo(path string) bool {
 	return err == nil
 }
 
+func FindRepositoryRoot(startPath string) (string, bool) {
+	currentDir := startPath
+	for {
+		if isRepo(currentDir) {
+			return filepath.ToSlash(currentDir), true
+		}
+
+		parentDir := filepath.Dir(currentDir)
+		if parentDir == currentDir {
+			break
+		}
+		currentDir = parentDir
+	}
+	return "", false
+}
+
 func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	queue := []string{base}
 	repos := make(chan string)
@@ -78,39 +94,19 @@ func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	return repos
 }
 
-func discoverParentRepository(base, ignoredRepo string) (string, bool) {
-	currentDir := base
-	for {
-		if filepath.ToSlash(currentDir) == filepath.ToSlash(ignoredRepo) {
-			return "", false
-		}
-
-		if isRepo(currentDir) {
-			return currentDir, true
-		}
-
-		parentDir := filepath.Dir(currentDir)
-		if parentDir == currentDir {
-			break
-		}
-		currentDir = parentDir
-	}
-	return "", false
-}
-
 func DiscoverRepositories(base, ignoredRepo string) <-chan string {
 	repos := make(chan string)
+	ignoredRepo = filepath.ToSlash(ignoredRepo)
 
 	go func() {
 		defer close(repos)
 
 		emitted := make(map[string]struct{})
 
-		parentRepo, foundParentRepo := discoverParentRepository(base, ignoredRepo)
-		if foundParentRepo {
-			normalized := filepath.ToSlash(parentRepo)
-			emitted[normalized] = struct{}{}
-			repos <- parentRepo
+		repoRoot, foundParentRepo := FindRepositoryRoot(base)
+		if foundParentRepo && repoRoot != ignoredRepo {
+			emitted[repoRoot] = struct{}{}
+			repos <- repoRoot
 		}
 
 		childRepos := discoverChildRepositories(base, ignoredRepo)

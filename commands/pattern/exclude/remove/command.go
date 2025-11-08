@@ -5,7 +5,6 @@ import (
 	"github.com/MatthiasHarzer/repo-file-sync/repository"
 
 	"github.com/fatih/color"
-	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 )
 
@@ -31,13 +30,12 @@ var Command = &cobra.Command{
 	Short: "Remove a custom glob-pattern from exclude",
 	Long:  "Remove a custom glob-pattern from exclude",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db, _, _, cfg, globalDiscoveryOptions, err := commands.Setup(baseDir)
+		db, usedBaseDir, _, cfg, globalDiscoveryOptions, err := commands.Setup(baseDir)
 		if err != nil {
 			panic(err)
 		}
 
-		_, err = git.PlainOpen(baseDir)
-		isRepo := err == nil
+		repo, hasRepo := repository.FindRepositoryRoot(usedBaseDir)
 
 		if isGlobalPattern {
 			println(color.YellowString("Removing global exclude patterns:"))
@@ -47,19 +45,19 @@ var Command = &cobra.Command{
 			if err != nil {
 				panic(err)
 			}
-		} else if !isRepo {
+		} else if !hasRepo {
 			println(color.RedString("Exclude patterns can only be removed from within repositories or from global pattern. Please enter a git repository directory first or use the `--global` flag."))
 			return nil
 		} else {
 			println(color.YellowString("Removing exclude patterns from repository:"))
-			options, err := db.ReadRepoDiscoveryOptions(baseDir)
+			options, err := db.ReadRepoDiscoveryOptions(repo)
 			if err != nil {
 				panic(err)
 			}
 
 			removeExcludePatterns(&options, args)
 
-			err = db.WriteRepoDiscoveryOptions(baseDir, options)
+			err = db.WriteRepoDiscoveryOptions(repo, options)
 			if err != nil {
 				panic(err)
 			}
