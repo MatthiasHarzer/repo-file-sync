@@ -53,7 +53,7 @@ func discoverChildRepositories(base, ignoredRepo string) <-chan string {
 	go func() {
 		defer close(repos)
 
-		if isRepo(base) {
+		if isRepo(base) && filepath.ToSlash(base) != filepath.ToSlash(ignoredRepo) {
 			repos <- base
 			return
 		}
